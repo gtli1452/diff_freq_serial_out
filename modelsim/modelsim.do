@@ -17,6 +17,7 @@ vmap diff_freq_serial_out_lib work
 # ------------------------------------------------------------------- #
 
 vlog -work diff_freq_serial_out_lib +incdir+$rtl_dir $rtl_dir/mod_m_counter.v
+vlog -work diff_freq_serial_out_lib +incdir+$rtl_dir $rtl_dir/serial_out.v
 vlog -work diff_freq_serial_out_lib +incdir+$rtl_dir $rtl_dir/diff_freq_serial_out.v
 
 # ------------------------------------------------------------------- #
