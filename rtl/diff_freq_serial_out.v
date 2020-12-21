@@ -123,17 +123,22 @@ always @(*) begin
     end // case: S_ENABLE
     // S_DONE: assert o_done_tick for one clock
     S_DONE: begin
-      output_next = output_reg;
       o_done_tick = 1'b1;
-      if (i_idle_mode == REPEAT)
-        begin
+      state_next  = S_IDLE;
+
+      case (i_idle_mode)
+        HIGH:    output_next = 1'b1;
+        LOW:     output_next = 1'b0;
+        KEEP: begin
+          output_next = output_reg;
           state_next    = S_ENABLE;
           data_buf_next = i_data; // load the input data
           data_bit_next = 0;
           count_next    = 7'b0;   // reset the counter
         end
-      else
-          state_next = S_IDLE;
+        default: output_next = 1'b0;
+      endcase
+
     end // case: S_DONE
 
     default: state_reg = S_IDLE;
