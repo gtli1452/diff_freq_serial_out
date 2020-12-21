@@ -12,9 +12,6 @@ module diff_freq_serial_out_tb ();
 localparam       DATA_BIT      = 8;
 localparam       SYS_PERIOD_NS = 100; // 1/10Mhz = 100ns
 
-localparam [7:0] LOW_FREQ      = 20;  // 10MHz/20 = 0.5MHz
-localparam [7:0] HIGH_FREQ     = 10;  // 10MHz/10 = 1MHz
-
 localparam [1:0] IDLE_LOW      = 2'b00;
 localparam [1:0] IDLE_HIGH     = 2'b01;
 localparam [1:0] IDLE_KEEP     = 2'b10;
@@ -52,9 +49,9 @@ initial begin
 end
 
 diff_freq_serial_out #(
-  .DATA_BIT  (DATA_BIT),
-  .LOW_FREQ  (LOW_FREQ),
-  .HIGH_FREQ (HIGH_FREQ)
+  .DATA_BIT   (DATA_BIT),
+  .TICK_10K_HZ (),
+  .TICK_20K_HZ ()
 ) serial_out_unit (
   .clk         (clk),
   .rst_n       (rst_n),
@@ -71,8 +68,10 @@ initial begin
   @(posedge rst_n);   // wait for finish reset
   CHANGE_CLK_PER_PACKAGE(8'h55, HIGH_SPEED, IDLE_HIGH);
   CHANGE_CLK_PER_PACKAGE(8'hAA, LOW_SPEED, IDLE_HIGH);
-  CHANGE_CLK_PER_PACKAGE(8'h55, LOW_SPEED, IDLE_HIGH);
-  
+  CHANGE_CLK_PER_PACKAGE(8'h55, HIGH_SPEED, IDLE_HIGH);
+  CHANGE_CLK_PER_PACKAGE(8'hAA, LOW_SPEED, IDLE_HIGH);
+  CHANGE_CLK_PER_PACKAGE(8'hF0, HIGH_SPEED, IDLE_HIGH);
+
   $finish;
 end
 
@@ -86,7 +85,7 @@ task CHANGE_CLK_PER_PACKAGE;
     i_start     = 1'b1;         // start transmit
     i_idle_mode = idle_output;  // idle output is low
     @(posedge clk);
-    i_start     = 1'b0;         // start signal is high in one clock  
+    i_start     = 1'b0;         // start signal is high in one clock
     @(negedge o_done_tick);
   end
 endtask
