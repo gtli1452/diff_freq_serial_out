@@ -23,7 +23,8 @@ module diff_freq_serial_out #(
   output                o_done_tick
 );
 
-wire tick;
+reg tick;
+wire tick_10kHz, tick_20kHz;
 
 serial_out #(
   .DATA_BIT     (DATA_BIT), 
@@ -40,12 +41,33 @@ serial_out #(
   .o_done_tick  (o_done_tick)
 );
 
+always @(*) begin
+  case (i_sel_freq)
+    1'b0: begin
+      tick = tick_10kHz;
+    end
+    1'b1: begin
+      tick = tick_20kHz;
+    end
+    default: tick = tick_10kHz;
+  endcase  
+end
+
 mod_m_counter #(
-  .MOD      (2)
-) tick_10us (
+  .MOD      (63)
+) tick_unit1 (
   .clk      (clk),
   .rst_n    (rst_n),
-  .max_tick (tick),
+  .max_tick (tick_10kHz),
+  .q        ()
+);
+
+mod_m_counter #(
+  .MOD      (31)
+) tick_unit2 (
+  .clk      (clk),
+  .rst_n    (rst_n),
+  .max_tick (tick_20kHz),
   .q        ()
 );
 

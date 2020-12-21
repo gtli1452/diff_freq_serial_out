@@ -39,5 +39,5 @@ vsim -pli novas.dll -novopt -t ns -lib diff_freq_serial_out_lib diff_freq_serial
 #wave zoom range 0ns 20us
 add wave -unsigned sim:/diff_freq_serial_out_tb/*
 
-run 1ms
+run 10ms
 q
