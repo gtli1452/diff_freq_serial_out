@@ -113,14 +113,7 @@ always @(*) begin
     // S_DONE: assert o_done_tick for one clock
     S_DONE: begin
       o_done_tick = 1'b1;
-      // determine idle value of output
-      case (i_idle_mode)
-        HIGH:    output_next = 1'b1;
-        LOW:     output_next = 1'b0;
-        KEEP:    output_next = output_reg;
-        REPEAT:  output_next = output_reg;
-        default: output_next = 1'b0;
-      endcase
+      output_next = output_reg;
       // repeat output
       if (i_idle_mode == REPEAT)
         begin
