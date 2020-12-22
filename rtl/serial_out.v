@@ -19,18 +19,18 @@ module serial_out #(
   input  [DATA_BIT-1:0] i_data,
   output                o_bit_tick,
   output                o_data,      // idle state is low
-  output reg            o_done_tick
+  output                o_done_tick
 );
 
 // Define the states
-localparam [1:0] S_IDLE    = 2'b00;
-localparam [1:0] S_ENABLE  = 2'b01;
-localparam [1:0] S_DONE    = 2'b10;
+localparam [1:0] S_IDLE   = 2'b00;
+localparam [1:0] S_ENABLE = 2'b01;
+localparam [1:0] S_DONE   = 2'b10;
 
-localparam [1:0] LOW       = 2'b00;
-localparam [1:0] HIGH      = 2'b01;
-localparam [1:0] KEEP      = 2'b10;
-localparam [1:0] REPEAT    = 2'b11;
+localparam [1:0] LOW      = 2'b00;
+localparam [1:0] HIGH     = 2'b01;
+localparam [1:0] KEEP     = 2'b10;
+localparam [1:0] REPEAT   = 2'b11;
 
 // Signal declaration
 reg [1:0]          state_reg,     state_next;
@@ -39,39 +39,42 @@ reg [5:0]          data_bit_reg,  data_bit_next;
 reg [DATA_BIT-1:0] data_buf_reg,  data_buf_next;
 reg [7:0]          count_reg,     count_next;
 reg                bit_tick_reg,  bit_tick_next;
+reg                done_tick_reg, done_tick_next;
 
 // Body
 // FSMD state & data registers
 always @(posedge clk, negedge rst_n) begin
   if (~rst_n)
     begin
-      state_reg    <= S_IDLE;
-      output_reg   <= 1'b0;
-      data_bit_reg <= 5'b0;
-      data_buf_reg <= {(DATA_BIT){1'b0}};
-      count_reg    <= 7'b0;
-      bit_tick_reg <= 1'b0;
+      state_reg     <= S_IDLE;
+      output_reg    <= 1'b0;
+      data_bit_reg  <= 5'b0;
+      data_buf_reg  <= {(DATA_BIT){1'b0}};
+      count_reg     <= 7'b0;
+      bit_tick_reg  <= 1'b0;
+      done_tick_reg <= 1'b0;
     end
   else
     begin
-      state_reg    <= state_next;
-      output_reg   <= output_next;
-      data_bit_reg <= data_bit_next;
-      data_buf_reg <= data_buf_next;
-      count_reg    <= count_next;
-      bit_tick_reg <= bit_tick_next;
+      state_reg     <= state_next;
+      output_reg    <= output_next;
+      data_bit_reg  <= data_bit_next;
+      data_buf_reg  <= data_buf_next;
+      count_reg     <= count_next;
+      bit_tick_reg  <= bit_tick_next;
+      done_tick_reg <= done_tick_next;
     end
 end
 
 // FSMD next-state logic
 always @(*) begin
-  state_next    = state_reg;
-  output_next   = output_reg;
-  data_bit_next = data_bit_reg;
-  data_buf_next = data_buf_reg;
-  count_next    = count_reg;
-  bit_tick_next = bit_tick_reg;
-  o_done_tick   = 1'b0;
+  state_next     = state_reg;
+  output_next    = output_reg;
+  data_bit_next  = data_bit_reg;
+  data_buf_next  = data_buf_reg;
+  count_next     = count_reg;
+  bit_tick_next  = 0;
+  done_tick_next = 0;
 
   case (state_reg)
     // S_IDLE: waiting for the i_start, output depends on i_idle_mode
@@ -120,7 +123,7 @@ always @(*) begin
     end // case: S_ENABLE
     // S_DONE: assert o_done_tick for one clock
     S_DONE: begin
-      o_done_tick = 1'b1;
+      done_tick_next = 1;
       output_next = output_reg;
       // repeat output
       if (i_idle_mode == REPEAT)
@@ -140,7 +143,8 @@ always @(*) begin
 end
 
 // Output
-assign o_data     = output_reg;
-assign o_bit_tick = bit_tick_reg;
+assign o_data      = output_reg;
+assign o_bit_tick  = bit_tick_reg;
+assign o_done_tick = done_tick_reg;
 
 endmodule
