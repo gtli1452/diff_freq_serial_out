@@ -28,6 +28,7 @@ reg                 i_start     = 1'b0;
 reg                 i_stop      = 1'b0;
 reg  [1:0]          i_idle_mode = 0;    // high, low, keep, repeat
 reg  [DATA_BIT-1:0] i_data      = 0;
+wire                o_bit_tick;
 wire                o_data;             // idle state is low
 wire                o_done_tick;        // tick one clock when transmission is done
 
@@ -60,17 +61,15 @@ diff_freq_serial_out #(
   .i_stop      (i_stop),
   .i_idle_mode (i_idle_mode), // high, low, keep, repeat
   .i_data      (i_data),
+  .o_bit_tick  (o_bit_tick),
   .o_data      (o_data),      // idle state is low
   .o_done_tick (o_done_tick)
 );
 
 initial begin
   @(posedge rst_n);   // wait for finish reset
-  CHANGE_CLK_PER_PACKAGE(8'h55, HIGH_SPEED, IDLE_HIGH);
-  CHANGE_CLK_PER_PACKAGE(8'hAA, LOW_SPEED, IDLE_HIGH);
-  CHANGE_CLK_PER_PACKAGE(8'h55, HIGH_SPEED, IDLE_HIGH);
-  CHANGE_CLK_PER_PACKAGE(8'hAA, LOW_SPEED, IDLE_HIGH);
-  CHANGE_CLK_PER_PACKAGE(8'hF0, HIGH_SPEED, IDLE_HIGH);
+  CHANGE_BIT_CLK(8'h55, HIGH_SPEED, IDLE_HIGH);
+  CHANGE_BIT_CLK(8'hAA, LOW_SPEED, IDLE_HIGH);
 
   $finish;
 end
@@ -90,5 +89,27 @@ task CHANGE_CLK_PER_PACKAGE;
   end
 endtask
 
+task CHANGE_BIT_CLK;
+  input [DATA_BIT-1:0] input_data;
+  input                transmit_clk;
+  input                idle_output;
+  integer i;
+  begin
+    i_sel_freq  = transmit_clk; // select low speed
+    i_data      = input_data;
+    i_start     = 1'b1;         // start transmit
+    i_idle_mode = idle_output;  // idle output is low
+    @(posedge clk);
+    i_start     = 1'b0;         // start signal is high in one clock
+    
+    repeat(DATA_BIT - 1)
+      begin
+        @(posedge o_bit_tick);
+        i_sel_freq = ~i_sel_freq;
+      end
+
+    @(negedge o_done_tick);
+  end
+endtask
 
 endmodule

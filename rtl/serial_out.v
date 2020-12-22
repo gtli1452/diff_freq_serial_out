@@ -12,11 +12,12 @@ module serial_out #(
 ) (
   input                 clk,
   input                 rst_n,
-  input                 i_tick,  // select high/low frequency
+  input                 i_tick,      // select high/low frequency
   input                 i_start,
   input                 i_stop,
   input  [1:0]          i_idle_mode, // high, low, keep, repeat
   input  [DATA_BIT-1:0] i_data,
+  output                o_bit_tick,
   output                o_data,      // idle state is low
   output reg            o_done_tick
 );
@@ -37,36 +38,40 @@ reg                output_reg,    output_next;
 reg [5:0]          data_bit_reg,  data_bit_next;
 reg [DATA_BIT-1:0] data_buf_reg,  data_buf_next;
 reg [7:0]          count_reg,     count_next;
+reg                bit_tick_reg,  bit_tick_next;
 
 // Body
 // FSMD state & data registers
 always @(posedge clk, negedge rst_n) begin
   if (~rst_n)
     begin
-      state_reg     <= S_IDLE;
-      output_reg    <= 1'b0;
-      data_bit_reg  <= 5'b0;
-      data_buf_reg  <= {(DATA_BIT){1'b0}};
-      count_reg     <= 7'b0;
+      state_reg    <= S_IDLE;
+      output_reg   <= 1'b0;
+      data_bit_reg <= 5'b0;
+      data_buf_reg <= {(DATA_BIT){1'b0}};
+      count_reg    <= 7'b0;
+      bit_tick_reg <= 1'b0;
     end
   else
     begin
-      state_reg     <= state_next;
-      output_reg    <= output_next;
-      data_bit_reg  <= data_bit_next;
-      data_buf_reg  <= data_buf_next;
-      count_reg     <= count_next;
+      state_reg    <= state_next;
+      output_reg   <= output_next;
+      data_bit_reg <= data_bit_next;
+      data_buf_reg <= data_buf_next;
+      count_reg    <= count_next;
+      bit_tick_reg <= bit_tick_next;
     end
 end
 
 // FSMD next-state logic
 always @(*) begin
-  state_next     = state_reg;
-  output_next    = output_reg;
-  data_bit_next  = data_bit_reg;
-  data_buf_next  = data_buf_reg;
-  count_next     = count_reg;
-  o_done_tick    = 1'b0;
+  state_next    = state_reg;
+  output_next   = output_reg;
+  data_bit_next = data_bit_reg;
+  data_buf_next = data_buf_reg;
+  count_next    = count_reg;
+  bit_tick_next = bit_tick_reg;
+  o_done_tick   = 1'b0;
 
   case (state_reg)
     // S_IDLE: waiting for the i_start, output depends on i_idle_mode
@@ -84,12 +89,14 @@ always @(*) begin
           state_next    = S_ENABLE;
           data_buf_next = i_data; // load the input data
           data_bit_next = 0;
-          count_next    = 7'b0;   // reset the counter
+          count_next    = 0;   // reset the counter
+          bit_tick_next = 0;
         end
     end // case: S_IDLE
     // S_ENABLE: serially output 32-bit data, it can change period per bit
     S_ENABLE: begin
-      output_next = data_buf_next[0]; // transmit lsb first
+      output_next   = data_buf_next[0]; // transmit lsb first
+      bit_tick_next = 1'b0;
       if (i_stop)
         begin
           state_next = S_IDLE;
@@ -98,7 +105,8 @@ always @(*) begin
         begin
           if (count_reg == TICK_PER_BIT - 1)
             begin
-              count_next = 7'b0;
+              count_next    = 7'b0;
+              bit_tick_next = 1'b1;
               data_buf_next = data_buf_reg >> 1;
 
               if (data_bit_reg == (DATA_BIT - 1 ))
@@ -120,7 +128,8 @@ always @(*) begin
           state_next    = S_ENABLE;
           data_buf_next = i_data; // load the input data
           data_bit_next = 0;
-          count_next    = 7'b0;   // reset the counter
+          count_next    = 0;   // reset the counter
+          bit_tick_next = 0;
         end
       else
           state_next = S_IDLE;
@@ -131,6 +140,7 @@ always @(*) begin
 end
 
 // Output
-assign o_data = output_reg;
+assign o_data     = output_reg;
+assign o_bit_tick = bit_tick_reg;
 
 endmodule
