@@ -15,7 +15,7 @@ module serial_out #(
   input                 i_tick,      // select high/low frequency
   input                 i_start,
   input                 i_stop,
-  input  [1:0]          i_idle_mode, // high, low, keep, repeat
+  input                 i_mode,      // one-shot, repeat
   input  [DATA_BIT-1:0] i_data,
   output                o_bit_tick,
   output                o_data,      // idle state is low
@@ -27,10 +27,9 @@ localparam [1:0] S_IDLE   = 2'b00;
 localparam [1:0] S_ENABLE = 2'b01;
 localparam [1:0] S_DONE   = 2'b10;
 
-localparam [1:0] LOW      = 2'b00;
-localparam [1:0] HIGH     = 2'b01;
-localparam [1:0] KEEP     = 2'b10;
-localparam [1:0] REPEAT   = 2'b11;
+localparam       IDLE     = 1'b0;
+localparam       ONE_SHOT = 1'b0;
+localparam       REPEAT   = 1'b1;
 
 // Signal declaration
 reg [1:0]          state_reg,     state_next;
@@ -77,29 +76,22 @@ always @(*) begin
   done_tick_next = 0;
 
   case (state_reg)
-    // S_IDLE: waiting for the i_start, output depends on i_idle_mode
+    // S_IDLE: waiting for the i_start, output depends on i_mode
     S_IDLE: begin
-      // determine the idle output, default is low.
-      case (i_idle_mode)
-        HIGH:    output_next = 1'b1;
-        LOW:     output_next = 1'b0;
-        KEEP:    output_next = output_reg;
-        default: output_next = 1'b0;
-      endcase
+      output_next = IDLE;
       // start output
       if (i_start)
         begin
           state_next    = S_ENABLE;
           data_buf_next = i_data; // load the input data
           data_bit_next = 0;
-          count_next    = 0;   // reset the counter
+          count_next    = 0;      // reset the counter
           bit_tick_next = 0;
         end
     end // case: S_IDLE
     // S_ENABLE: serially output 32-bit data, it can change period per bit
     S_ENABLE: begin
       output_next   = data_buf_next[0]; // transmit lsb first
-      bit_tick_next = 1'b0;
       if (i_stop)
         begin
           state_next = S_IDLE;
@@ -126,15 +118,15 @@ always @(*) begin
       done_tick_next = 1;
       output_next = output_reg;
       // repeat output
-      if (i_idle_mode == REPEAT)
+      if (i_mode == REPEAT)
         begin
           state_next    = S_ENABLE;
           data_buf_next = i_data; // load the input data
           data_bit_next = 0;
-          count_next    = 0;   // reset the counter
+          count_next    = 0;      // reset the counter
           bit_tick_next = 0;
         end
-      else
+      else if (i_mode == ONE_SHOT)
           state_next = S_IDLE;
     end // case: S_DONE
 

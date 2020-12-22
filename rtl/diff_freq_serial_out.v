@@ -17,7 +17,7 @@ module diff_freq_serial_out #(
   input                 i_sel_freq,  // select high/low frequency
   input                 i_start,
   input                 i_stop,
-  input  [1:0]          i_idle_mode, // high, low, keep, repeat
+  input                 i_mode,      // one-shot, repeat
   input  [DATA_BIT-1:0] i_data,
   output                o_bit_tick,
   output                o_data,      // idle state is low
@@ -36,7 +36,7 @@ serial_out #(
   .i_tick       (tick),        // select high/low frequency
   .i_start      (i_start),
   .i_stop       (i_stop),
-  .i_idle_mode  (i_idle_mode), // high, low, keep, repeat
+  .i_mode       (i_mode),      // one-shot, repeat
   .i_data       (i_data),
   .o_bit_tick   (o_bit_tick),
   .o_data       (o_data),      // idle state is low
