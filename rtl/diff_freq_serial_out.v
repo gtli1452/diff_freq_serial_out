@@ -7,7 +7,7 @@ Release     : 12/16/2020 v1.0
 */
 
 module diff_freq_serial_out #(
-  parameter DATA_BIT     = 16,
+  parameter DATA_BIT     = 32,
   parameter TICK_PER_BIT = 16,
   parameter TICK_10K_HZ  = 63,
   parameter TICK_20K_HZ  = 31
@@ -19,12 +19,12 @@ module diff_freq_serial_out #(
   input                 i_stop,
   input                 i_mode,      // one-shot, repeat
   input  [DATA_BIT-1:0] i_data,
-  output                o_bit_tick,
   output                o_data,      // idle state is low
+  output                o_bit_tick,
   output                o_done_tick
 );
 
-reg tick;
+reg  tick;
 wire tick_10kHz, tick_20kHz;
 
 serial_out #(
@@ -38,8 +38,8 @@ serial_out #(
   .i_stop       (i_stop),
   .i_mode       (i_mode),      // one-shot, repeat
   .i_data       (i_data),
-  .o_bit_tick   (o_bit_tick),
   .o_data       (o_data),      // idle state is low
+  .o_bit_tick   (o_bit_tick),
   .o_done_tick  (o_done_tick)
 );
 

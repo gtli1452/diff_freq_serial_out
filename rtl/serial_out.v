@@ -7,7 +7,7 @@ Release     : 12/16/2020 v1.0
 */
 
 module serial_out #(
-  parameter DATA_BIT     = 16, 
+  parameter DATA_BIT     = 32, 
   parameter TICK_PER_BIT = 16
 ) (
   input                 clk,
@@ -17,9 +17,9 @@ module serial_out #(
   input                 i_stop,
   input                 i_mode,      // one-shot, repeat
   input  [DATA_BIT-1:0] i_data,
-  output                o_bit_tick,
   output                o_data,      // idle state is low
-  output                o_done_tick
+  output                o_done_tick,
+  output                o_bit_tick
 );
 
 // Define the states

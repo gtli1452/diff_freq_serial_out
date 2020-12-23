@@ -10,7 +10,7 @@ module diff_freq_serial_out_tb ();
 
 // Parameter declaration
 localparam DATA_BIT      = 8;
-localparam SYS_PERIOD_NS = 100; // 1/10Mhz = 100ns
+localparam SYS_PERIOD_NS = 100;     // 1/10Mhz = 100ns
 localparam IDLE_LOW      = 1'b0;
 localparam IDLE_HIGH     = 1'b1;
 localparam ONE_SHOT      = 1'b0;
@@ -24,11 +24,11 @@ reg                 rst_n       = 0;
 reg                 i_sel_freq  = 0; // select low/high frequency
 reg                 i_start     = 0;
 reg                 i_stop      = 0;
-reg                 i_mode      = 0;    // one-shot, repeat
+reg                 i_mode      = 0; // one-shot, repeat
 reg  [DATA_BIT-1:0] i_data      = 0;
 wire                o_bit_tick;
-wire                o_data;             // idle state is low
-wire                o_done_tick;        // tick one clock when transmission is done
+wire                o_data;          // idle state is low
+wire                o_done_tick;     // tick one clock when transmission is done
 
 always #(SYS_PERIOD_NS/2) clk = ~clk;
 
@@ -48,7 +48,7 @@ initial begin
 end
 
 diff_freq_serial_out #(
-  .DATA_BIT   (DATA_BIT),
+  .DATA_BIT    (DATA_BIT),
   .TICK_10K_HZ (),
   .TICK_20K_HZ ()
 ) serial_out_unit (
@@ -85,7 +85,7 @@ task CHANGE_CLK_PER_PACK;
     i_mode     = output_mode;  // one-shot, repeat
     @(posedge clk);
     i_start    = 1'b0;         // start signal is high in one clock
-    @(negedge o_done_tick);
+    @(posedge o_done_tick);
   end
 endtask
 
@@ -108,7 +108,7 @@ task CHANGE_CLK_PER_BIT;
         i_sel_freq = ~i_sel_freq;
       end
 
-    @(negedge o_done_tick);
+    @(posedge o_done_tick);
   end
 endtask
 
