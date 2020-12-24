@@ -7,8 +7,8 @@ Release     : 12/23/2020 v1.0
 */
 
 module decoder #(
-  parameter DATA_BIT = 16,
-  parameter PACK_NUM = 5
+  parameter DATA_BIT = 32,
+  parameter PACK_NUM = 9
 ) (
   input                     clk,
   input                     rst_n,
@@ -28,13 +28,14 @@ localparam [1:0] S_IDLE = 2'b00;
 localparam [1:0] S_DATA = 2'b01;
 localparam [1:0] S_DONE = 2'b10;
 
-localparam PACK_BIT = 8 * PACK_NUM;
+localparam PACK_BIT   = 8 * PACK_NUM;
+localparam FREQ_INDEX = 2 * DATA_BIT;
 
 // Signal declaration
 reg [1:0]          state_reg,    state_next;
 reg [7:0]          data_reg,     data_next;
 reg [PACK_BIT-1:0] out_reg,      out_next;
-reg [2:0]          pack_num_reg, pack_num_next;
+reg [3:0]          pack_num_reg, pack_num_next;
 reg                start_reg,    start_next;
 
 // Body
@@ -86,7 +87,7 @@ always @(*) begin
           data_next     = i_data;
           pack_num_next = pack_num_reg + 1'b1;
         end
-      else if (pack_num_reg == 4)
+      else if (pack_num_reg == PACK_NUM-1)
         begin
           state_next    = S_DONE;
           data_next     = i_data;
@@ -97,12 +98,13 @@ always @(*) begin
     S_DONE: begin
       o_done_tick      = 1;
       state_next       = S_IDLE;
-      o_output_pattern = out_reg[15:0];
-      o_freq_pattern   = out_reg[31:16];
-      o_sel_out        = out_reg[38:35];
-      o_mode           = out_reg[34];
-      o_stop           = out_reg[33];
-      start_next       = out_reg[32];
+      
+      o_output_pattern = out_reg[DATA_BIT-1:0];
+      o_freq_pattern   = out_reg[FREQ_INDEX-1:DATA_BIT];
+      start_next       = out_reg[FREQ_INDEX];
+      o_stop           = out_reg[FREQ_INDEX+1];
+      o_mode           = out_reg[FREQ_INDEX+2];
+      o_sel_out        = out_reg[FREQ_INDEX+4:FREQ_INDEX+3];
     end
 
     default: state_next = S_IDLE;
