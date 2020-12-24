@@ -16,6 +16,7 @@ module decoder #(
   input                     i_rx_done_tick,
   output reg [DATA_BIT-1:0] o_output_pattern,
   output reg [DATA_BIT-1:0] o_freq_pattern,
+  output reg [3:0]          o_sel_out,
   output reg                o_mode,
   output                    o_start,
   output reg                o_stop,
@@ -98,6 +99,7 @@ always @(*) begin
       state_next       = S_IDLE;
       o_output_pattern = out_reg[15:0];
       o_freq_pattern   = out_reg[31:16];
+      o_sel_out        = out_reg[38:35];
       o_mode           = out_reg[34];
       o_stop           = out_reg[33];
       start_next       = out_reg[32];

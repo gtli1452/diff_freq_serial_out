@@ -36,6 +36,7 @@ wire tb_tx_done;
 // decoder signal
   wire [DATA_BIT-1:0] o_output_pattern;
   wire [DATA_BIT-1:0] o_freq_pattern;
+  wire [3:0]          o_sel_out;
   wire                o_mode;
   wire                o_stop;
   wire                o_start;
@@ -67,6 +68,7 @@ decoder #(
   .i_rx_done_tick   (tb_rx_done),
   .o_output_pattern (o_output_pattern),
   .o_freq_pattern   (o_freq_pattern),
+  .o_sel_out        (o_sel_out),
   .o_mode           (o_mode),
   .o_start          (o_start),
   .o_stop           (o_stop),
