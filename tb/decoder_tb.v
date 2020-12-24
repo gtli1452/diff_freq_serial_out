@@ -21,7 +21,9 @@ localparam DATA_SIZE     = 8;
 localparam STOP_TICK     = 16;         // 1-bit stop (16 ticks/bit)
 localparam CLK_DIV       = 65;         // SYS_CLK/(16*BAUD_RATE), i.e. 10M/(16*9600)
 localparam DIV_BIT       = 7;          // bits for TICK_DIVIDE, it must be >= log2(TICK_DIVIDE)
-localparam DATA_BIT      = 16;
+localparam DATA_BIT      = 32;
+localparam PACK_NUM      = 9;          // PACK_NUM = 2*(DATA_BIT/8) + 1
+
 reg clk;
 reg rst_n;
 
@@ -60,7 +62,8 @@ initial begin
 end
 
 decoder #(
-  .DATA_BIT(DATA_BIT)
+  .DATA_BIT(DATA_BIT),
+  .PACK_NUM(PACK_NUM)
 ) decoder_dut (
   .clk              (clk),
   .rst_n            (rst_n),
@@ -98,14 +101,14 @@ UART #(
   .o_tx_done_tick (tb_tx_done)
 );
 
-reg [DATA_SIZE-1:0] test_byte;
+reg [DATA_SIZE-1:0] test_byte = 0;
 
 //Starting test
 initial begin
   //Check RX module
-  repeat(11)
+  repeat(19)
     begin
-      test_byte = $random;
+      test_byte = test_byte + 1;//$random;
       UART_WRITE_BYTE(test_byte);
     end
   #(4*BIT_PERIOD)
