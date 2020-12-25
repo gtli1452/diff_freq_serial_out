@@ -30,8 +30,8 @@ localparam       IDLE     = 1'b0;
 localparam       ONE_SHOT = 1'b0;
 localparam       REPEAT   = 1'b1;
 
-localparam       LOW_FREQ  = 9;
-localparam       HIGH_FREQ = 3;
+localparam [7:0] LOW_FREQ  = 9;
+localparam [7:0] HIGH_FREQ = 3;
 
 // Signal declaration
 reg [1:0]          state_reg,     state_next;
