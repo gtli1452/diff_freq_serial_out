@@ -32,11 +32,11 @@ wire o_mode;
 wire decoder_done_tick;
 
 // Serial out signal
-reg [DATA_BIT-1:0] ch0_output_pattern;
-reg [DATA_BIT-1:0] ch0_freq_pattern;
-reg                ch0_start;
-reg                ch0_stop;
-reg                ch0_mode;
+reg [DATA_BIT-1:0] ch0_output_pattern = 0;
+reg [DATA_BIT-1:0] ch0_freq_pattern   = 0;
+reg                ch0_start          = 0;
+reg                ch0_stop           = 0;
+reg                ch0_mode           = 0;
 
 // Define the states
 localparam [1:0] S_IDLE   = 2'b00;
@@ -79,7 +79,7 @@ always @(posedge clk,  negedge rst_n) begin
     end
 end
 
-// FSMD next-state logic
+// FSMD next-state logic, to update the output pattern
 always @(*) begin
   state_next         = state_reg;
   output_next        = output_reg;
@@ -89,8 +89,6 @@ always @(*) begin
   stop_next          = stop_reg;
   mode_next          = mode_reg;
   update_done_tick   = 0;
-  ch0_output_pattern = 0;
-  ch0_freq_pattern   = 0;
   ch0_start          = 0;
   case (state_reg)
     S_IDLE: begin
@@ -107,7 +105,7 @@ always @(*) begin
     end
 
     S_UPDATE: begin
-      case (sel_out_next)
+      case (sel_out_reg)
         4'd0: begin
           ch0_output_pattern = output_reg;
           ch0_freq_pattern   = freq_reg;
