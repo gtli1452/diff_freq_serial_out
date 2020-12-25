@@ -91,7 +91,7 @@ always @(*) begin
     S_IDLE: begin
       if (decoder_done_tick)
         begin
-          state_reg    = S_UPDATE;
+          state_next   = S_UPDATE;
           output_next  = o_output_pattern;
           freq_next    = o_freq_pattern;
           sel_out_next = o_sel_out;
