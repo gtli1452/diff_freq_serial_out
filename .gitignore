@@ -29,4 +29,3 @@ Debussy*/
 
 # ignore user define file
 *.rc
-*_test.v
