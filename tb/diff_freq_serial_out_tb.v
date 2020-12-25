@@ -10,6 +10,8 @@ module diff_freq_serial_out_tb ();
 
 // Parameter declaration
 localparam DATA_BIT      = 8;
+localparam PACK_NUM      = 3;
+
 localparam SYS_PERIOD_NS = 100;     // 1/10Mhz = 100ns
 localparam IDLE_LOW      = 1'b0;
 localparam IDLE_HIGH     = 1'b1;
@@ -18,17 +20,34 @@ localparam REPEAT        = 1'b1;
 localparam LOW_SPEED     = 1'b0;
 localparam HIGH_SPEED    = 1'b1;
 
+localparam SYS_CLK       = 10_000_000;
+localparam BAUD_RATE     = 19200;
+localparam CLK_PER_BIT   = 521;
+localparam BIT_PERIOD    = 521_00;   // CLK_PER_BIT=1042, 1042*100ns = 104200.
+localparam UART_DATA_BIT = 8;
+localparam STOP_TICK     = 16;       // 1-bit stop (16 ticks/bit)
+localparam CLK_DIV       = 33;       // SYS_CLK/(16*BAUD_RATE), i.e. 10M/(16*9600)
+localparam DIV_BIT       = 6;        // bits for TICK_DIVIDE, it must be >= log2(TICK_DIVIDE)
+
+
 // Signal declaration
-reg                 clk         = 0;
-reg                 rst_n       = 0;
-reg                 i_sel_freq  = 0; // select low/high frequency
-reg                 i_start     = 0;
-reg                 i_stop      = 0;
-reg                 i_mode      = 0; // one-shot, repeat
-reg  [DATA_BIT-1:0] i_data      = 0;
+reg                 clk   = 0;
+reg                 rst_n = 0;
+
+// diff_freq_serial_out signal
 wire                o_bit_tick;
-wire                o_data;          // idle state is low
+wire                o_serial_out;    // idle state is low
 wire                o_done_tick;     // tick one clock when transmission is done
+
+// UART signal
+reg  tb_RxSerial;
+wire tb_TxSerial;
+
+// rx output port
+wire tb_rx_done;
+wire [7:0] tb_received_data;
+wire tb_tx_done;
+
 
 always #(SYS_PERIOD_NS/2) clk = ~clk;
 
@@ -49,67 +68,77 @@ end
 
 diff_freq_serial_out #(
   .DATA_BIT    (DATA_BIT),
+  .PACK_NUM    (PACK_NUM),
   .TICK_10K_HZ (),
   .TICK_20K_HZ ()
 ) serial_out_unit (
-  .clk         (clk),
-  .rst_n       (rst_n),
-  .i_sel_freq  (i_sel_freq), // select high/low frequency
-  .i_start     (i_start),
-  .i_stop      (i_stop),
-  .i_mode      (i_mode),     // one-shot, repeat
-  .i_data      (i_data),
-  .o_bit_tick  (o_bit_tick),
-  .o_data      (o_data),     // idle state is low
-  .o_done_tick (o_done_tick)
+  .clk            (clk),
+  .rst_n          (rst_n),
+  .i_data         (tb_received_data),
+  .i_rx_done_tick (tb_rx_done),
+  .o_bit_tick     (o_bit_tick),
+  .o_serial_out   (o_serial_out), // idle state is low
+  .o_done_tick    (o_done_tick)
+);
+
+UART #(
+  .SYS_CLK        (SYS_CLK),
+  .BAUD_RATE      (BAUD_RATE),
+  .DATA_BITS      (UART_DATA_BIT),
+  .STOP_TICK      (STOP_TICK),
+  .CLK_DIV        (CLK_DIV),
+  .DIV_BIT        (DIV_BIT)
+) DUT_uart (
+  .clk            (clk),
+  .rst_n          (rst_n),
+
+  //rx interface
+  .i_rx           (tb_RxSerial),
+  .o_rx_done_tick (tb_rx_done),
+  .o_rx_data      (tb_received_data),
+
+  //tx interface
+  .i_tx_start     (tb_rx_done),
+  .i_tx_data      (tb_received_data),
+  .o_tx           (tb_TxSerial),
+  .o_tx_done_tick (tb_tx_done)
 );
 
 initial begin
-  @(posedge rst_n);   // wait for finish reset
-  CHANGE_CLK_PER_PACK(8'h55, HIGH_SPEED, ONE_SHOT);
-  CHANGE_CLK_PER_PACK(8'hAA, LOW_SPEED, ONE_SHOT);
-  CHANGE_CLK_PER_BIT(8'h55, HIGH_SPEED, ONE_SHOT);
-  CHANGE_CLK_PER_BIT(8'hAA, LOW_SPEED, ONE_SHOT);
+  @(posedge rst_n);       // wait for finish reset
+  UART_WRITE_BYTE(8'h55); // output pattern
+  UART_WRITE_BYTE(8'h55); // frequency pattern
+  UART_WRITE_BYTE(8'h01); // ch0, mode=one-shot, stop=1, start=1
 
+  UART_WRITE_BYTE(8'h55); // output pattern
+  UART_WRITE_BYTE(8'hFF); // frequency pattern
+  // [7 | 6  5  4  3 |  2  |   1  |   0  ]
+  // [x |   OUT_No.  | mode| STOP | START]
+  UART_WRITE_BYTE(8'h01); // ch0, mode=one-shot, stop=1, start=1
+
+  @(posedge o_done_tick);
   $finish;
 end
 
-task CHANGE_CLK_PER_PACK;
-  input [DATA_BIT-1:0] input_data;
-  input                transmit_clk;
-  input                output_mode;
-  begin
-    i_sel_freq = transmit_clk; // select low speed
-    i_data     = input_data;
-    i_start    = 1'b1;         // start transmit
-    i_mode     = output_mode;  // one-shot, repeat
-    @(posedge clk);
-    i_start    = 1'b0;         // start signal is high in one clock
-    @(posedge o_done_tick);
-  end
-endtask
-
-task CHANGE_CLK_PER_BIT;
-  input [DATA_BIT-1:0] input_data;
-  input                transmit_clk;
-  input                output_mode;
+//To check RX module
+task UART_WRITE_BYTE;
+  input [UART_DATA_BIT-1:0] WRITE_DATA;
   integer i;
   begin
-    i_sel_freq = transmit_clk; // select low speed
-    i_data     = input_data;
-    i_start    = 1'b1;         // start transmit
-    i_mode     = output_mode;  // one-shot, repeat
-    @(posedge clk);
-    i_start    = 1'b0;         // start signal is high in one clock
-    
-    repeat(DATA_BIT - 1)
+    //Send Start Bit
+    tb_RxSerial = 1'b0;
+    #(BIT_PERIOD);
+
+    //Send Data Byte
+    for (i = 0; i < UART_DATA_BIT; i = i + 1)
       begin
-        @(posedge o_bit_tick);
-        i_sel_freq = ~i_sel_freq;
+        tb_RxSerial = WRITE_DATA[i];
+        #(BIT_PERIOD);
       end
 
-    @(posedge o_done_tick);
+    //Send Stop Bit
+    tb_RxSerial = 1'b1;
+    #(BIT_PERIOD);
   end
 endtask
-
 endmodule
