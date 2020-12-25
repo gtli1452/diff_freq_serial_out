@@ -86,7 +86,11 @@ always @(*) begin
   stop_next        = stop_reg;
   mode_next        = mode_reg;
   update_done_tick = 0;
-  ch0_start        = 0;
+  ch0_output_pattern = 0;
+  ch0_freq_pattern   = 0;
+  ch0_start        = 0; // to create start_tick for one-shot
+  ch0_stop         = 0;
+  ch0_mode         = 0;
   case (state_reg)
     S_IDLE: begin
       if (decoder_done_tick)
@@ -107,8 +111,11 @@ always @(*) begin
           ch0_output_pattern = output_reg;
           ch0_freq_pattern   = freq_reg;
           ch0_start          = start_reg;
+          ch0_stop           = stop_reg;
+          ch0_mode           = mode_reg;
           state_next         = S_DONE;
         end
+        default: state_next = S_DONE;
       endcase
     end
 
@@ -144,8 +151,8 @@ serial_out #(
   .clk              (clk),
   .rst_n            (rst_n),
   .i_start          (ch0_start),
-  .i_stop           (stop_reg),
-  .i_mode           (mode_reg),          // one-shot, repeat
+  .i_stop           (ch0_stop),
+  .i_mode           (ch0_mode),          // one-shot, repeat
   .i_output_pattern (ch0_output_pattern),
   .i_freq_pattern   (ch0_freq_pattern),
   .o_serial_out     (o_serial_out),      // idle state is low
