@@ -114,10 +114,10 @@ initial begin
   UART_WRITE_BYTE(8'hFF); // frequency pattern
   // [7 | 6  5  4  3 |  2  |   1  |   0  ]
   // [x |   OUT_No.  | mode| STOP | START]
-  UART_WRITE_BYTE(8'h01); // ch0, mode=one-shot, stop=1, start=1
+  UART_WRITE_BYTE(8'h05); // ch0, mode=one-shot, stop=1, start=1
 
   @(posedge o_done_tick);
-  $finish;
+  //$finish;
 end
 
 //To check RX module

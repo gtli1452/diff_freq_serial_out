@@ -98,7 +98,6 @@ always @(*) begin
           freq_buf_next = i_freq_pattern;   // load the input data
           data_bit_next = 0;
           count_next    = 0;      // reset the counter
-          bit_tick_next = 0;
           if (freq_buf_next[0])
             count_max_next = HIGH_FREQ - 1'b1;
           else
@@ -142,13 +141,12 @@ always @(*) begin
           freq_buf_next = i_freq_pattern; // load the input data
           data_bit_next = 0;
           count_next    = 0;      // reset the counter
-          bit_tick_next = 0;
           if (freq_buf_next[0])
             count_max_next = HIGH_FREQ - 1'b1;
           else
             count_max_next = LOW_FREQ - 1'b1;
         end
-      else if (i_mode == ONE_SHOT)
+      else
           state_next = S_IDLE;
     end // case: S_DONE
 
