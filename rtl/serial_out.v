@@ -41,7 +41,6 @@ reg [5:0]          data_bit_reg,  data_bit_next;
 reg [DATA_BIT-1:0] data_buf_reg,  data_buf_next;
 reg [DATA_BIT-1:0] freq_buf_reg,  freq_buf_next;
 reg [7:0]          count_reg,     count_next;
-reg [7:0]          count_max_reg, count_max_next;
 reg                bit_tick_reg,  bit_tick_next;
 reg                done_tick_reg, done_tick_next;
 
@@ -51,14 +50,13 @@ always @(posedge clk, negedge rst_n) begin
   if (~rst_n)
     begin
       state_reg     <= S_IDLE;
-      output_reg    <= 1'b0;
-      data_bit_reg  <= 5'b0;
+      output_reg    <= 0;
+      data_bit_reg  <= 0;
       data_buf_reg  <= {(DATA_BIT){1'b0}};
       freq_buf_reg  <= {(DATA_BIT){1'b0}};
-      count_reg     <= 7'b0;
-      count_max_reg <= LOW_FREQ - 1'b1;
-      bit_tick_reg  <= 1'b0;
-      done_tick_reg <= 1'b0;
+      count_reg     <= 0;
+      bit_tick_reg  <= 0;
+      done_tick_reg <= 0;
     end
   else
     begin
@@ -68,7 +66,6 @@ always @(posedge clk, negedge rst_n) begin
       data_buf_reg  <= data_buf_next;
       freq_buf_reg  <= freq_buf_next;
       count_reg     <= count_next;
-      count_max_reg <= count_max_next;
       bit_tick_reg  <= bit_tick_next;
       done_tick_reg <= done_tick_next;
     end
@@ -82,7 +79,6 @@ always @(*) begin
   data_buf_next  = data_buf_reg;
   freq_buf_next  = freq_buf_reg;
   count_next     = count_reg;
-  count_max_next = count_max_reg;
   bit_tick_next  = 0;
   done_tick_next = 0;
 
@@ -97,11 +93,10 @@ always @(*) begin
           data_buf_next = i_output_pattern; // load the input data
           freq_buf_next = i_freq_pattern;   // load the input data
           data_bit_next = 0;
-          count_next    = 0;      // reset the counter
           if (freq_buf_next[0])
-            count_max_next = HIGH_FREQ - 1'b1;
+            count_next = HIGH_FREQ - 1'b1;
           else
-            count_max_next = LOW_FREQ - 1'b1;
+            count_next = LOW_FREQ - 1'b1;
         end
     end // case: S_IDLE
     // S_ENABLE: serially output 32-bit data, it can change period per bit
@@ -111,10 +106,9 @@ always @(*) begin
         begin
           state_next = S_IDLE;
         end
-      else if (count_reg == count_max_reg)
+      else if (count_reg == 0)
         begin
-          count_next    = 7'b0;
-          bit_tick_next = 1'b1;
+          bit_tick_next = 1;
          
           if (data_bit_reg == (DATA_BIT - 1 ))
             state_next = S_DONE;
@@ -122,12 +116,12 @@ always @(*) begin
             data_bit_next = data_bit_reg + 1'b1;
 
           if (freq_buf_reg[data_bit_next])    // to get the next-bit freq, use "data_bit_next"
-            count_max_next = HIGH_FREQ - 1'b1;
+            count_next = HIGH_FREQ - 1'b1;
           else
-            count_max_next = LOW_FREQ - 1'b1;
+            count_next = LOW_FREQ - 1'b1;
         end
       else
-        count_next = count_reg + 1'b1;
+        count_next = count_reg - 1'b1;
     end // case: S_ENABLE
     // S_DONE: assert o_done_tick for one clock
     S_DONE: begin
@@ -138,13 +132,12 @@ always @(*) begin
         begin
           state_next    = S_ENABLE;
           data_buf_next = i_output_pattern; // load the input data
-          freq_buf_next = i_freq_pattern; // load the input data
+          freq_buf_next = i_freq_pattern;   // load the input data
           data_bit_next = 0;
-          count_next    = 0;      // reset the counter
           if (freq_buf_next[0])
-            count_max_next = HIGH_FREQ - 1'b1;
+            count_next = HIGH_FREQ - 1'b1;
           else
-            count_max_next = LOW_FREQ - 1'b1;
+            count_next = LOW_FREQ - 1'b1;
         end
       else
           state_next = S_IDLE;
