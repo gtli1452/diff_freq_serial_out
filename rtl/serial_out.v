@@ -35,6 +35,7 @@ localparam       HIGH_FREQ = 3;
 
 // Signal declaration
 reg [1:0]          state_reg,     state_next;
+reg                mode_reg,      mode_next;
 reg                output_reg,    output_next;
 reg [5:0]          data_bit_reg,  data_bit_next;
 reg [DATA_BIT-1:0] data_buf_reg,  data_buf_next;
@@ -49,6 +50,7 @@ always @(posedge clk, negedge rst_n) begin
   if (~rst_n)
     begin
       state_reg     <= S_IDLE;
+      mode_reg      <= 0;
       output_reg    <= 0;
       data_bit_reg  <= 0;
       data_buf_reg  <= {(DATA_BIT){1'b0}};
@@ -60,6 +62,7 @@ always @(posedge clk, negedge rst_n) begin
   else
     begin
       state_reg     <= state_next;
+      mode_reg      <= mode_next;
       output_reg    <= output_next;
       data_bit_reg  <= data_bit_next;
       data_buf_reg  <= data_buf_next;
@@ -73,6 +76,7 @@ end
 // FSMD next-state logic
 always @(*) begin
   state_next     = state_reg;
+  mode_next      = mode_reg;
   output_next    = output_reg;
   data_bit_next  = data_bit_reg;
   data_buf_next  = data_buf_reg;
@@ -89,6 +93,7 @@ always @(*) begin
       if (i_start)
         begin
           state_next    = S_ONE_SHOT;
+          mode_next     = i_mode;           // load the mode, 0:one-shot, 1:repeat
           data_buf_next = i_output_pattern; // load the input data
           freq_buf_next = i_freq_pattern;   // load the input data
           data_bit_next = 0;
@@ -107,6 +112,7 @@ always @(*) begin
         end
       else if (i_start)
         begin
+          mode_next     = i_mode;           // load the mode, 0:one-shot, 1:repeat
           data_buf_next = i_output_pattern; // load the input data
           freq_buf_next = i_freq_pattern;   // load the input data
           data_bit_next = 0;
@@ -137,7 +143,7 @@ always @(*) begin
       output_next    = output_reg;
       done_tick_next = 1;
       // repeat output
-      if (i_mode == REPEAT)
+      if (mode_reg == REPEAT)
         begin
           state_next    = S_ONE_SHOT;
           data_bit_next = 0;
