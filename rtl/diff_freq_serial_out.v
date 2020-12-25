@@ -8,10 +8,7 @@ Release     : 12/16/2020 v1.0
 
 module diff_freq_serial_out #(
   parameter DATA_BIT     = 32,
-  parameter PACK_NUM     = 9,
-  parameter TICK_PER_BIT = 16,
-  parameter TICK_10K_HZ  = 63,
-  parameter TICK_20K_HZ  = 31
+  parameter PACK_NUM     = 9
 ) (
   input        clk,
   input        rst_n,
@@ -26,10 +23,10 @@ module diff_freq_serial_out #(
 wire [DATA_BIT-1:0] o_output_pattern;
 wire [DATA_BIT-1:0] o_freq_pattern;
 wire [3:0]          o_sel_out;
-wire o_start;
-wire o_stop;
-wire o_mode;
-wire decoder_done_tick;
+wire                o_start;
+wire                o_stop;
+wire                o_mode;
+wire                decoder_done_tick;
 
 // Serial out signal
 reg [DATA_BIT-1:0] ch0_output_pattern = 0;
@@ -81,15 +78,15 @@ end
 
 // FSMD next-state logic, to update the output pattern
 always @(*) begin
-  state_next         = state_reg;
-  output_next        = output_reg;
-  freq_next          = freq_reg;
-  sel_out_next       = sel_out_reg;
-  start_next         = start_reg;
-  stop_next          = stop_reg;
-  mode_next          = mode_reg;
-  update_done_tick   = 0;
-  ch0_start          = 0;
+  state_next       = state_reg;
+  output_next      = output_reg;
+  freq_next        = freq_reg;
+  sel_out_next     = sel_out_reg;
+  start_next       = start_reg;
+  stop_next        = stop_reg;
+  mode_next        = mode_reg;
+  update_done_tick = 0;
+  ch0_start        = 0;
   case (state_reg)
     S_IDLE: begin
       if (decoder_done_tick)
@@ -142,8 +139,7 @@ decoder #(
 );
 
 serial_out #(
-  .DATA_BIT     (DATA_BIT),
-  .TICK_PER_BIT (TICK_PER_BIT)
+  .DATA_BIT     (DATA_BIT)
 ) serial_out1 (
   .clk              (clk),
   .rst_n            (rst_n),
