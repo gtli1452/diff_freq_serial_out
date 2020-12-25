@@ -9,8 +9,8 @@ Release     : 12/16/2020 v1.0
 module diff_freq_serial_out_tb ();
 
 // Parameter declaration
-localparam DATA_BIT      = 8;
-localparam PACK_NUM      = 3;
+localparam DATA_BIT      = 32;
+localparam PACK_NUM      = 9;
 
 localparam SYS_PERIOD_NS = 100;     // 1/10Mhz = 100ns
 localparam IDLE_LOW      = 1'b0;
@@ -104,18 +104,22 @@ UART #(
 
 initial begin
   @(posedge rst_n);       // wait for finish reset
-  UART_WRITE_BYTE(8'h55); // output pattern
-  UART_WRITE_BYTE(8'h55); // frequency pattern
-  UART_WRITE_BYTE(8'h01); // ch0, mode=one-shot, stop=1, start=1
-
-  UART_WRITE_BYTE(8'hAA); // output pattern
-  UART_WRITE_BYTE(8'h00); // frequency pattern
+  UART_WRITE_BYTE(8'hFF);
+  UART_WRITE_BYTE(8'h00);
+  UART_WRITE_BYTE(8'hFF);
+  UART_WRITE_BYTE(8'h55);
+  
+  UART_WRITE_BYTE(8'h00);
+  UART_WRITE_BYTE(8'hFF);
+  UART_WRITE_BYTE(8'h00);
+  UART_WRITE_BYTE(8'hFF);
+  
   // [7 | 6  5  4  3 |  2  |   1  |   0  ]
   // [x |   OUT_No.  | mode| STOP | START]
   UART_WRITE_BYTE(8'h01); // ch0, mode=one-shot, stop=1, start=1
-
+  
   @(posedge o_done_tick);
-  $finish;
+  //$finish;
 end
 
 //To check RX module
