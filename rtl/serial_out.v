@@ -7,7 +7,7 @@ Release     : 12/16/2020 v1.0
 */
 
 module serial_out #(
-  parameter DATA_BIT     = 32, 
+  parameter DATA_BIT     = 32,
   parameter TICK_PER_BIT = 16
 ) (
   input                 clk,
@@ -18,8 +18,8 @@ module serial_out #(
   input  [DATA_BIT-1:0] i_output_pattern,
   input  [DATA_BIT-1:0] i_freq_pattern,
   output                o_serial_out,  // idle state is low
-  output                o_done_tick, 
-  output                o_bit_tick 
+  output                o_done_tick,
+  output                o_bit_tick
 );
 
 // Define the states
@@ -31,8 +31,8 @@ localparam       IDLE     = 1'b0;
 localparam       ONE_SHOT = 1'b0;
 localparam       REPEAT   = 1'b1;
 
-localparam       LOW_FREQ  = 200;
-localparam       HIGH_FREQ = 50;
+localparam       LOW_FREQ  = 9;
+localparam       HIGH_FREQ = 3;
 
 // Signal declaration
 reg [1:0]          state_reg,     state_next;
@@ -95,7 +95,7 @@ always @(*) begin
         begin
           state_next    = S_ENABLE;
           data_buf_next = i_output_pattern; // load the input data
-          freq_buf_next = i_freq_pattern; // load the input data
+          freq_buf_next = i_freq_pattern;   // load the input data
           data_bit_next = 0;
           count_next    = 0;      // reset the counter
           bit_tick_next = 0;
@@ -116,26 +116,24 @@ always @(*) begin
         begin
           count_next    = 7'b0;
           bit_tick_next = 1'b1;
-          //data_buf_next = data_buf_reg >> 1;
-          //freq_buf_next = freq_buf_reg >> 1;
-          // TODO: fix the following if-condition
-          if (freq_buf_reg[data_bit_reg + 1'b1]) // get the frequency for next bit
-            count_max_next = HIGH_FREQ - 1'b1;
-          else
-            count_max_next = LOW_FREQ - 1'b1;
-
+         
           if (data_bit_reg == (DATA_BIT - 1 ))
             state_next = S_DONE;
           else
             data_bit_next = data_bit_reg + 1'b1;
+
+          if (freq_buf_reg[data_bit_next])    // to get the next-bit freq, use "data_bit_next"
+            count_max_next = HIGH_FREQ - 1'b1;
+          else
+            count_max_next = LOW_FREQ - 1'b1;
         end
       else
         count_next = count_reg + 1'b1;
     end // case: S_ENABLE
     // S_DONE: assert o_done_tick for one clock
     S_DONE: begin
+      output_next    = output_reg;
       done_tick_next = 1;
-      output_next = output_reg;
       // repeat output
       if (i_mode == REPEAT)
         begin
