@@ -22,9 +22,9 @@ module serial_out #(
 );
 
 // Define the states
-localparam [1:0] S_IDLE   = 2'b00;
-localparam [1:0] S_ENABLE = 2'b01;
-localparam [1:0] S_DONE   = 2'b10;
+localparam [1:0] S_IDLE     = 2'b00;
+localparam [1:0] S_ONE_SHOT = 2'b01;
+localparam [1:0] S_DONE     = 2'b10;
 
 localparam       IDLE     = 1'b0;
 localparam       ONE_SHOT = 1'b0;
@@ -88,7 +88,7 @@ always @(*) begin
       // start output
       if (i_start)
         begin
-          state_next    = S_ENABLE;
+          state_next    = S_ONE_SHOT;
           data_buf_next = i_output_pattern; // load the input data
           freq_buf_next = i_freq_pattern;   // load the input data
           data_bit_next = 0;
@@ -98,12 +98,22 @@ always @(*) begin
             count_next = LOW_FREQ - 1'b1;
         end
     end // case: S_IDLE
-    // S_ENABLE: serially output 32-bit data, it can change period per bit
-    S_ENABLE: begin
+    // S_ONE_SHOT: serially output 32-bit data, it can change period per bit
+    S_ONE_SHOT: begin
       output_next = data_buf_reg[data_bit_reg]; // transmit lsb first
       if (i_stop)
         begin
           state_next = S_IDLE;
+        end
+      else if (i_start)
+        begin
+          data_buf_next = i_output_pattern; // load the input data
+          freq_buf_next = i_freq_pattern;   // load the input data
+          data_bit_next = 0;
+          if (freq_buf_next[0])
+            count_next = HIGH_FREQ - 1'b1;
+          else
+            count_next = LOW_FREQ - 1'b1;
         end
       else if (count_reg == 0)
         begin
@@ -121,7 +131,7 @@ always @(*) begin
         end
       else
         count_next = count_reg - 1'b1;
-    end // case: S_ENABLE
+    end // case: S_ONE_SHOT
     // S_DONE: assert o_done_tick for one clock
     S_DONE: begin
       output_next    = output_reg;
@@ -129,9 +139,7 @@ always @(*) begin
       // repeat output
       if (i_mode == REPEAT)
         begin
-          state_next    = S_ENABLE;
-          data_buf_next = i_output_pattern; // load the input data
-          freq_buf_next = i_freq_pattern;   // load the input data
+          state_next    = S_ONE_SHOT;
           data_bit_next = 0;
           if (freq_buf_next[0])
             count_next = HIGH_FREQ - 1'b1;
