@@ -31,22 +31,22 @@ localparam DIV_BIT       = 6;        // bits for TICK_DIVIDE, it must be >= log2
 
 
 // Signal declaration
-reg                 clk   = 0;
-reg                 rst_n = 0;
+reg clk   = 0;
+reg rst_n = 0;
 
 // diff_freq_serial_out signal
-wire                o_bit_tick;
-wire                o_serial_out;    // idle state is low
-wire                o_done_tick;     // tick one clock when transmission is done
+wire o_bit_tick;
+wire o_serial_out; // idle state is low
+wire o_done_tick;  // tick one clock when transmission is done
 
 // UART signal
 reg  tb_RxSerial;
 wire tb_TxSerial;
 
 // rx output port
-wire tb_rx_done;
+wire       tb_rx_done;
+wire       tb_tx_done;
 wire [7:0] tb_received_data;
-wire tb_tx_done;
 
 
 always #(SYS_PERIOD_NS/2) clk = ~clk;
@@ -68,16 +68,14 @@ end
 
 diff_freq_serial_out #(
   .DATA_BIT    (DATA_BIT),
-  .PACK_NUM    (PACK_NUM),
-  .TICK_10K_HZ (),
-  .TICK_20K_HZ ()
+  .PACK_NUM    (PACK_NUM)
 ) serial_out_unit (
   .clk            (clk),
   .rst_n          (rst_n),
   .i_data         (tb_received_data),
   .i_rx_done_tick (tb_rx_done),
-  .o_bit_tick     (o_bit_tick),
   .o_serial_out   (o_serial_out), // idle state is low
+  .o_bit_tick     (o_bit_tick),
   .o_done_tick    (o_done_tick)
 );
 
@@ -110,14 +108,14 @@ initial begin
   UART_WRITE_BYTE(8'h55); // frequency pattern
   UART_WRITE_BYTE(8'h01); // ch0, mode=one-shot, stop=1, start=1
 
-  UART_WRITE_BYTE(8'h55); // output pattern
-  UART_WRITE_BYTE(8'hFF); // frequency pattern
+  UART_WRITE_BYTE(8'hAA); // output pattern
+  UART_WRITE_BYTE(8'h00); // frequency pattern
   // [7 | 6  5  4  3 |  2  |   1  |   0  ]
   // [x |   OUT_No.  | mode| STOP | START]
-  UART_WRITE_BYTE(8'h05); // ch0, mode=one-shot, stop=1, start=1
+  UART_WRITE_BYTE(8'h01); // ch0, mode=one-shot, stop=1, start=1
 
   @(posedge o_done_tick);
-  //$finish;
+  $finish;
 end
 
 //To check RX module
