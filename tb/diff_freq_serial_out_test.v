@@ -9,7 +9,8 @@ Release     : 12/16/2020 v1.0
 module diff_freq_serial_out_test (
   input  clk,          // PIN_P9
   input  rst_n,        // PIN_G13
-  output o_serial_out, // PIN_T7
+  output o_serial_out0, // PIN_T7
+  output o_serial_out1, // PIN_P8
   output o_bit_tick,   // PIN_R10
   output o_done_tick,  // PIN_T8
 
@@ -18,8 +19,8 @@ module diff_freq_serial_out_test (
   output o_tx
 );
 
-localparam DATA_BIT = 32;
-localparam PACK_NUM = 9;
+localparam DATA_BIT = 8;
+localparam PACK_NUM = 3;
 
 wire o_rx_done_tick, o_tx_done;
 wire [7:0] tb_received_data;
@@ -32,7 +33,8 @@ diff_freq_serial_out #(
   .rst_n          (rst_n),
   .i_data         (tb_received_data),
   .i_rx_done_tick (o_rx_done_tick),
-  .o_serial_out   (o_serial_out),     // idle state is low
+  .o_serial_out0  (o_serial_out0),
+  .o_serial_out1  (o_serial_out1),
   .o_bit_tick     (o_bit_tick),
   .o_done_tick    (o_done_tick)
 );
