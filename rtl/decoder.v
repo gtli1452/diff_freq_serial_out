@@ -106,7 +106,7 @@ always @(*) begin
       o_start          = out_reg[FREQ_INDEX];
       o_stop           = out_reg[FREQ_INDEX+1];
       o_mode           = out_reg[FREQ_INDEX+2];
-      o_sel_out        = out_reg[FREQ_INDEX+4:FREQ_INDEX+3];
+      o_sel_out        = out_reg[FREQ_INDEX+5:FREQ_INDEX+4];
     end
 
     default: state_next = S_IDLE;
