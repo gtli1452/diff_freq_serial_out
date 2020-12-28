@@ -14,7 +14,7 @@ debussy -2001 ./../tb/diff_freq_serial_out_tb.v ^
               ./../rtl/uart_rx.v                ^
               ./../rtl/decoder.v                ^
               -ssf diff_freq_serial_out.fsdb    ^
-              -sswr serial_out.rc
+              -sswr two_output.rc
 
 ::Delete waveform file
 DEL *.fsdb /q

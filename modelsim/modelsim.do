@@ -42,7 +42,7 @@ vlog -work diff_freq_serial_out_lib +incdir+$tb_dir $tb_dir/decoder_tb.v
 vsim -pli novas.dll -novopt -t ns -lib diff_freq_serial_out_lib diff_freq_serial_out_tb
 #vsim -pli novas.dll -novopt -t ns -lib diff_freq_serial_out_lib decoder_tb
 
-#wave zoom range 0ns 20us
+#wave zoom range 1540us 1548us
 #add wave -unsigned sim:/diff_freq_serial_out_tb/*
 
 run 50ms
