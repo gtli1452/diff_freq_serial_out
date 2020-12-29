@@ -10,8 +10,8 @@ module diff_freq_serial_out_tb ();
 
 // Parameter declaration
 // output & frequency pattern are all 32-bit, control_bits is 8-bit
-localparam DATA_BIT      = 8;
-localparam PACK_NUM      = 3; // PACK_NUM = (out_pattern + freq_pattern + control_bits)/8 = (32+32+8)/8
+localparam DATA_BIT      = 32;
+localparam PACK_NUM      = 9; // PACK_NUM = (out_pattern + freq_pattern + control_bits)/8 = (32+32+8)/8
 
 localparam SYS_PERIOD_NS = 100;     // 1/10Mhz = 100ns
 localparam IDLE_LOW      = 1'b0;
@@ -107,19 +107,11 @@ UART #(
 
 initial begin
   @(posedge rst_n);       // wait for finish reset
-  UART_WRITE_BYTE(8'h55);
-  UART_WRITE_BYTE(8'h55);
   
-  // [7 | 6  5  4  3 |  2  |   1  |   0  ]
-  // [x |   OUT_No.  | mode| STOP | START]
-  UART_WRITE_BYTE(8'h01); // ch0, mode=one-shot, stop=1, start=1
-  
-  UART_WRITE_BYTE(8'h55);
-  UART_WRITE_BYTE(8'h55);
-  UART_WRITE_BYTE(8'h11);
-
+  OUT_32BIT_TWO_CHANNEL();
   @(posedge o_done_tick);
-  $finish;
+  
+  //$finish;
 end
 
 //To check RX module
@@ -141,6 +133,34 @@ task UART_WRITE_BYTE;
     //Send Stop Bit
     tb_RxSerial = 1'b1;
     #(BIT_PERIOD);
+  end
+endtask
+
+task OUT_32BIT_TWO_CHANNEL;
+  begin
+    UART_WRITE_BYTE(8'hff);
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'hff);
+    UART_WRITE_BYTE(8'h00);
+
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h00);
+    
+    UART_WRITE_BYTE(8'h01);
+    
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h55);
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h55);
+
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h00);
+    
+    UART_WRITE_BYTE(8'h11);
   end
 endtask
 
