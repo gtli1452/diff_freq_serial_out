@@ -16,6 +16,7 @@ module diff_freq_serial_out #(
   input        i_rx_done_tick,
   output       o_serial_out0,
   output       o_serial_out1,
+  output       o_serial_out2,
   output       o_bit_tick,
   output       o_done_tick
 );
@@ -136,6 +137,15 @@ always @(*) begin
           start_buf_next[1] = start_reg;
           stop_buf_next [1] = stop_reg;
           mode_buf_next [1] = mode_reg;
+          state_next        = S_IDLE;
+        end
+
+        4'd2: begin
+          output_pattern[2] = output_reg;
+          freq_pattern  [2] = freq_reg;
+          start_buf_next[2] = start_reg;
+          stop_buf_next [2] = stop_reg;
+          mode_buf_next [2] = mode_reg;
           state_next        = S_DONE;
         end
 
@@ -171,7 +181,7 @@ decoder #(
 
 serial_out #(
   .DATA_BIT     (DATA_BIT)
-) serial_out1 (
+) serial_out0 (
   .clk              (clk),
   .rst_n            (rst_n),
   .i_start          (start_pattern [0]),
@@ -186,7 +196,7 @@ serial_out #(
 
 serial_out #(
   .DATA_BIT     (DATA_BIT)
-) serial_out2 (
+) serial_out1 (
   .clk              (clk),
   .rst_n            (rst_n),
   .i_start          (start_pattern [1]),
@@ -195,6 +205,21 @@ serial_out #(
   .i_output_pattern (output_pattern[1]),
   .i_freq_pattern   (freq_pattern  [1]),
   .o_serial_out     (o_serial_out1),     // idle state is low
+  .o_bit_tick       (),
+  .o_done_tick      ()
+);
+
+serial_out #(
+  .DATA_BIT     (DATA_BIT)
+) serial_out2 (
+  .clk              (clk),
+  .rst_n            (rst_n),
+  .i_start          (start_pattern [2]),
+  .i_stop           (stop_pattern  [2]),
+  .i_mode           (mode_pattern  [2]), // one-shot, repeat
+  .i_output_pattern (output_pattern[2]),
+  .i_freq_pattern   (freq_pattern  [2]),
+  .o_serial_out     (o_serial_out2),     // idle state is low
   .o_bit_tick       (),
   .o_done_tick      ()
 );

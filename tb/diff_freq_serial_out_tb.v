@@ -40,6 +40,7 @@ wire o_bit_tick;
 wire o_done_tick;   // tick one clock when transmission is done
 wire o_serial_out0; // idle state is low
 wire o_serial_out1; // idle state is low
+wire o_serial_out2; // idle state is low
 
 // UART signal
 reg  tb_RxSerial;
@@ -78,6 +79,7 @@ diff_freq_serial_out #(
   .i_rx_done_tick (tb_rx_done),
   .o_serial_out0  (o_serial_out0), // idle state is low
   .o_serial_out1  (o_serial_out1),
+  .o_serial_out2  (o_serial_out2),
   .o_bit_tick     (o_bit_tick),
   .o_done_tick    (o_done_tick)
 );
@@ -108,7 +110,9 @@ UART #(
 initial begin
   @(posedge rst_n);       // wait for finish reset
   
-  OUT_32BIT_TWO_CHANNEL();
+  OUT_32BIT_CHANNEL(0, ONE_SHOT);
+  OUT_32BIT_CHANNEL(1, REPEAT);
+  OUT_32BIT_CHANNEL(2, ONE_SHOT);
   @(posedge o_done_tick);
   
   //$finish;
@@ -136,7 +140,9 @@ task UART_WRITE_BYTE;
   end
 endtask
 
-task OUT_32BIT_TWO_CHANNEL;
+task OUT_32BIT_CHANNEL;
+  input [3:0] channel;
+  input reg mode;
   begin
     UART_WRITE_BYTE(8'hff);
     UART_WRITE_BYTE(8'h00);
@@ -148,19 +154,7 @@ task OUT_32BIT_TWO_CHANNEL;
     UART_WRITE_BYTE(8'h00);
     UART_WRITE_BYTE(8'h00);
     
-    UART_WRITE_BYTE(8'h01);
-    
-    UART_WRITE_BYTE(8'h00);
-    UART_WRITE_BYTE(8'h55);
-    UART_WRITE_BYTE(8'h00);
-    UART_WRITE_BYTE(8'h55);
-
-    UART_WRITE_BYTE(8'h00);
-    UART_WRITE_BYTE(8'h00);
-    UART_WRITE_BYTE(8'h00);
-    UART_WRITE_BYTE(8'h00);
-    
-    UART_WRITE_BYTE(8'h11);
+    UART_WRITE_BYTE({channel, 1'b0, mode, {2'h1}});
   end
 endtask
 
