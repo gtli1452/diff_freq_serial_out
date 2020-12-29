@@ -7,20 +7,21 @@ Release     : 12/16/2020 v1.0
 */
 
 module diff_freq_serial_out_test (
-  input  clk,          // PIN_P9
-  input  rst_n,        // PIN_G13
+  input  clk,           // PIN_P9
+  input  rst_n,         // PIN_G13
   output o_serial_out0, // PIN_T7
   output o_serial_out1, // PIN_P8
-  output o_bit_tick,   // PIN_R10
-  output o_done_tick,  // PIN_T8
-
+  output o_bit_tick,    // PIN_R10
+  output o_done_tick,   // PIN_T8
   // UART
-  input  i_rx,
-  output o_tx
+  input  i_rx,          // PIN_K12
+  output o_tx           // PIN_M12
 );
 
-localparam DATA_BIT = 8;
-localparam PACK_NUM = 3;
+localparam DATA_BIT = 32;
+// PACK_NUM = byte_num of a pack
+//          = output_pattern (32-bit) + freq_pattern (32-bit) + control_byte
+localparam PACK_NUM = (DATA_BIT/8)*2+1;
 
 wire o_rx_done_tick, o_tx_done;
 wire [7:0] tb_received_data;
@@ -40,11 +41,11 @@ diff_freq_serial_out #(
 );
 
 localparam SYS_CLK   = 10_000_000; // 10Mhz
-localparam BAUD_RATE = 19200;
+localparam BAUD_RATE = 9600;
 localparam DATA_SIZE = 8;          // 8-bit data
 localparam STOP_TICK = 16;         // 1-bit stop (16 ticks/bit)
-localparam CLK_DIV   = 33;         // SYS_CLK/(16*BAUD_RATE), i.e. 10M/(16*19200)
-localparam DIV_BIT   = 6;          // bits for TICK_DIVIDE, it must be >= log2(TICK_DIVIDE)
+localparam CLK_DIV   = 65;         // SYS_CLK/(16*BAUD_RATE), i.e. 10M/(16*19200)
+localparam DIV_BIT   = 7;          // bits for TICK_DIVIDE, it must be >= log2(TICK_DIVIDE)
 
 UART #(
   .SYS_CLK       (SYS_CLK),
