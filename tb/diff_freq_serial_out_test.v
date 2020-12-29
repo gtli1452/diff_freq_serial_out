@@ -11,6 +11,7 @@ module diff_freq_serial_out_test (
   input  rst_n,         // PIN_G13
   output o_serial_out0, // PIN_T7
   output o_serial_out1, // PIN_P8
+  output o_serial_out2, // PIN_R9
   output o_bit_tick,    // PIN_R10
   output o_done_tick,   // PIN_T8
   // UART
@@ -36,6 +37,7 @@ diff_freq_serial_out #(
   .i_rx_done_tick (o_rx_done_tick),
   .o_serial_out0  (o_serial_out0),
   .o_serial_out1  (o_serial_out1),
+  .o_serial_out2  (o_serial_out2),
   .o_bit_tick     (o_bit_tick),
   .o_done_tick    (o_done_tick)
 );
