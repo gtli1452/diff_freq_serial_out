@@ -43,11 +43,11 @@ diff_freq_serial_out #(
 );
 
 localparam SYS_CLK   = 10_000_000; // 10Mhz
-localparam BAUD_RATE = 9600;
+localparam BAUD_RATE = 19200;
+localparam CLK_DIV   = 33;         // SYS_CLK/(16*BAUD_RATE), i.e. 10M/(16*19200)
+localparam DIV_BIT   = 6;          // bits for TICK_DIVIDE, it must be >= log2(TICK_DIVIDE)
 localparam DATA_SIZE = 8;          // 8-bit data
 localparam STOP_TICK = 16;         // 1-bit stop (16 ticks/bit)
-localparam CLK_DIV   = 65;         // SYS_CLK/(16*BAUD_RATE), i.e. 10M/(16*19200)
-localparam DIV_BIT   = 7;          // bits for TICK_DIVIDE, it must be >= log2(TICK_DIVIDE)
 
 UART #(
   .SYS_CLK       (SYS_CLK),
