@@ -25,11 +25,10 @@ localparam SYS_CLK       = 10_000_000;
 localparam BAUD_RATE     = 19200;
 localparam CLK_PER_BIT   = 521;
 localparam BIT_PERIOD    = 521_00;   // CLK_PER_BIT=1042, 1042*100ns = 104200.
-localparam UART_DATA_BIT = 8;
-localparam STOP_TICK     = 16;       // 1-bit stop (16 ticks/bit)
 localparam CLK_DIV       = 33;       // SYS_CLK/(16*BAUD_RATE), i.e. 10M/(16*9600)
 localparam DIV_BIT       = 6;        // bits for TICK_DIVIDE, it must be >= log2(TICK_DIVIDE)
-
+localparam UART_DATA_BIT = 8;
+localparam STOP_TICK     = 16;       // 1-bit stop (16 ticks/bit)
 
 // Signal declaration
 reg clk   = 0;
@@ -51,7 +50,7 @@ wire       tb_rx_done;
 wire       tb_tx_done;
 wire [7:0] tb_received_data;
 
-
+// system clock generator
 always #(SYS_PERIOD_NS/2) clk = ~clk;
 
 initial begin
