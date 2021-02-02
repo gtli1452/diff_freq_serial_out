@@ -24,6 +24,19 @@ localparam DATA_BIT = 32;
 //          = output_pattern (32-bit) + freq_pattern (32-bit) + control_byte
 localparam PACK_NUM = (DATA_BIT/8)*2+1;
 
+// synchronous reset
+reg rst_n_reg, rst_n_next;
+
+// data register
+always @(posedge clk) begin
+  rst_n_reg <= rst_n_next;
+end
+
+// next-state logic
+always @(*) begin
+  rst_n_next = rst_n;
+end
+
 wire o_rx_done_tick, o_tx_done;
 wire [7:0] tb_received_data;
 
@@ -32,7 +45,7 @@ diff_freq_serial_out #(
   .PACK_NUM       (PACK_NUM)
 ) DUT (
   .clk            (clk),
-  .rst_n          (rst_n),
+  .rst_n          (rst_n_reg),
   .i_data         (tb_received_data),
   .i_rx_done_tick (o_rx_done_tick),
   .o_serial_out0  (o_serial_out0),
@@ -58,7 +71,7 @@ UART #(
   .DIV_BIT       (DIV_BIT)
 ) DUT_uart (
   .clk            (clk),
-  .rst_n          (rst_n),
+  .rst_n          (rst_n_reg),
   //rx interface
   .i_rx           (i_rx),
   .o_rx_done_tick (o_rx_done_tick),
