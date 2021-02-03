@@ -16,37 +16,54 @@ module diff_freq_serial_out_test (
   output o_done_tick,   // PIN_T8
   // UART
   input  i_rx,          // PIN_K12
-  output o_tx           // PIN_M12
+  output o_tx,          // PIN_M12
+  // PLL
+  output o_pll_locked   // PIN_R16
 );
 
-localparam DATA_BIT = 32;
-// PACK_NUM = byte_num of a pack
-//          = output_pattern (32-bit) + freq_pattern (32-bit) + control_byte
-localparam PACK_NUM = (DATA_BIT/8)*2+1;
+// Serial output parameter 
+localparam DATA_BIT       = 32;
+localparam PACK_NUM       = (DATA_BIT/8)*2+1; // byte_num of a pack = output_pattern (32-bit) + freq_pattern (32-bit) + control_byte
 
-// synchronous reset
-reg rst_n_reg, rst_n_next;
+// Uart parameter
+localparam SYS_CLK        = 100_000_000; // 100Mhz
+localparam BAUD_RATE      = 19200;
+localparam UART_CLK_DIV   = SYS_CLK/(16*BAUD_RATE); // SYS_CLK/(16*BAUD_RATE), i.e. 10M/(16*19200)
+localparam UART_DIV_BIT   = $clog2(UART_CLK_DIV);        // bits for TICK_DIVIDE, it must be >= log2(TICK_DIVIDE)
+localparam UART_DATA_BIT  = 8;                      // 8-bit data
+localparam UART_STOP_TICK = 16;                     // 1-bit stop (16 ticks/bit)
 
-// data register
+// Signal declaration
+reg        rst_n_reg, rst_n_next; // synchronous reset
+wire       clk_pll;
+wire [7:0] rx_received_data;
+wire       o_rx_done_tick, o_tx_done_tick;
+
+// Data register
 always @(posedge clk) begin
   rst_n_reg <= rst_n_next;
 end
 
-// next-state logic
+// Next-state logic
 always @(*) begin
   rst_n_next = rst_n;
 end
 
-wire o_rx_done_tick, o_tx_done;
-wire [7:0] tb_received_data;
+// PLL IP
+pll pll_100M (
+  .refclk   (clk),
+  .rst      (~rst_n_reg), // positive-edge reset
+  .outclk_0 (clk_pll),
+  .locked   (o_pll_locked)
+);
 
 diff_freq_serial_out #(
   .DATA_BIT       (DATA_BIT),
   .PACK_NUM       (PACK_NUM)
 ) DUT (
-  .clk            (clk),
+  .clk            (clk_pll),
   .rst_n          (rst_n_reg),
-  .i_data         (tb_received_data),
+  .i_data         (rx_received_data),
   .i_rx_done_tick (o_rx_done_tick),
   .o_serial_out0  (o_serial_out0),
   .o_serial_out1  (o_serial_out1),
@@ -55,33 +72,26 @@ diff_freq_serial_out #(
   .o_done_tick    (o_done_tick)
 );
 
-localparam SYS_CLK   = 10_000_000; // 10Mhz
-localparam BAUD_RATE = 19200;
-localparam CLK_DIV   = 33;         // SYS_CLK/(16*BAUD_RATE), i.e. 10M/(16*19200)
-localparam DIV_BIT   = 6;          // bits for TICK_DIVIDE, it must be >= log2(TICK_DIVIDE)
-localparam DATA_SIZE = 8;          // 8-bit data
-localparam STOP_TICK = 16;         // 1-bit stop (16 ticks/bit)
-
 UART #(
   .SYS_CLK       (SYS_CLK),
   .BAUD_RATE     (BAUD_RATE),
-  .DATA_BITS     (DATA_SIZE),
-  .STOP_TICK     (STOP_TICK),
-  .CLK_DIV       (CLK_DIV),
-  .DIV_BIT       (DIV_BIT)
+  .DATA_BITS     (UART_DATA_BIT),
+  .STOP_TICK     (UART_STOP_TICK),
+  .CLK_DIV       (UART_CLK_DIV),
+  .DIV_BIT       (UART_DIV_BIT)
 ) DUT_uart (
-  .clk            (clk),
+  .clk            (clk_pll),
   .rst_n          (rst_n_reg),
   //rx interface
   .i_rx           (i_rx),
   .o_rx_done_tick (o_rx_done_tick),
-  .o_rx_data      (tb_received_data),
+  .o_rx_data      (rx_received_data),
   
   //tx interface
   .i_tx_start     (o_rx_done_tick),
-  .i_tx_data      (tb_received_data),
+  .i_tx_data      (rx_received_data),
   .o_tx           (o_tx),
-  .o_tx_done_tick (o_tx_done)
+  .o_tx_done_tick (o_tx_done_tick)
 );
 
 endmodule
