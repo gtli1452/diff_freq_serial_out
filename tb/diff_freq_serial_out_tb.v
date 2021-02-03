@@ -13,7 +13,8 @@ module diff_freq_serial_out_tb ();
 localparam DATA_BIT      = 32;
 localparam PACK_NUM      = 9; // PACK_NUM = (out_pattern + freq_pattern + control_bits)/8 = (32+32+8)/8
 
-localparam SYS_PERIOD_NS = 100;     // 1/10Mhz = 100ns
+localparam SYS_CLK       = 100_000_000;
+localparam SYS_PERIOD_NS = 10;     // 1/100Mhz = 10ns
 localparam IDLE_LOW      = 1'b0;
 localparam IDLE_HIGH     = 1'b1;
 localparam ONE_SHOT      = 1'b0;
@@ -21,14 +22,11 @@ localparam REPEAT        = 1'b1;
 localparam LOW_SPEED     = 1'b0;
 localparam HIGH_SPEED    = 1'b1;
 
-localparam SYS_CLK       = 10_000_000;
-localparam BAUD_RATE     = 19200;
-localparam CLK_PER_BIT   = 521;
-localparam BIT_PERIOD    = 521_00;   // CLK_PER_BIT=1042, 1042*100ns = 104200.
-localparam CLK_DIV       = 33;       // SYS_CLK/(16*BAUD_RATE), i.e. 10M/(16*9600)
-localparam DIV_BIT       = 6;        // bits for TICK_DIVIDE, it must be >= log2(TICK_DIVIDE)
-localparam UART_DATA_BIT = 8;
-localparam STOP_TICK     = 16;       // 1-bit stop (16 ticks/bit)
+localparam BAUD_RATE        = 19200;
+localparam CLK_PER_UART_BIT = SYS_CLK/BAUD_RATE;
+localparam UART_BIT_PERIOD  = CLK_PER_UART_BIT * SYS_PERIOD_NS;
+localparam UART_DATA_BIT    = 8;
+localparam UART_STOP_BIT    = 1;
 
 // Signal declaration
 reg clk   = 0;
@@ -87,9 +85,7 @@ UART #(
   .SYS_CLK        (SYS_CLK),
   .BAUD_RATE      (BAUD_RATE),
   .DATA_BITS      (UART_DATA_BIT),
-  .STOP_TICK      (STOP_TICK),
-  .CLK_DIV        (CLK_DIV),
-  .DIV_BIT        (DIV_BIT)
+  .STOP_BIT       (UART_STOP_BIT)
 ) DUT_uart (
   .clk            (clk),
   .rst_n          (rst_n),
@@ -124,18 +120,18 @@ task UART_WRITE_BYTE;
   begin
     //Send Start Bit
     tb_RxSerial = 1'b0;
-    #(BIT_PERIOD);
+    #(UART_BIT_PERIOD);
 
     //Send Data Byte
     for (i = 0; i < UART_DATA_BIT; i = i + 1)
       begin
         tb_RxSerial = WRITE_DATA[i];
-        #(BIT_PERIOD);
+        #(UART_BIT_PERIOD);
       end
 
     //Send Stop Bit
     tb_RxSerial = 1'b1;
-    #(BIT_PERIOD);
+    #(UART_BIT_PERIOD);
   end
 endtask
 
@@ -143,9 +139,9 @@ task OUT_32BIT_CHANNEL;
   input [3:0] channel;
   input reg mode;
   begin
-    UART_WRITE_BYTE(8'hff);
+    UART_WRITE_BYTE(8'h55);
     UART_WRITE_BYTE(8'h00);
-    UART_WRITE_BYTE(8'hff);
+    UART_WRITE_BYTE(8'h55);
     UART_WRITE_BYTE(8'h00);
 
     UART_WRITE_BYTE(8'h00);

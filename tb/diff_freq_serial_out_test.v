@@ -28,10 +28,8 @@ localparam PACK_NUM       = (DATA_BIT/8)*2+1; // byte_num of a pack = output_pat
 // Uart parameter
 localparam SYS_CLK        = 100_000_000; // 100Mhz
 localparam BAUD_RATE      = 19200;
-localparam UART_CLK_DIV   = SYS_CLK/(16*BAUD_RATE); // SYS_CLK/(16*BAUD_RATE), i.e. 10M/(16*19200)
-localparam UART_DIV_BIT   = $clog2(UART_CLK_DIV);        // bits for TICK_DIVIDE, it must be >= log2(TICK_DIVIDE)
 localparam UART_DATA_BIT  = 8;                      // 8-bit data
-localparam UART_STOP_TICK = 16;                     // 1-bit stop (16 ticks/bit)
+localparam UART_STOP_BIT  = 1;                      // 1-bit stop (16 ticks/bit)
 
 // Signal declaration
 reg        rst_n_reg, rst_n_next; // synchronous reset
@@ -76,12 +74,11 @@ UART #(
   .SYS_CLK       (SYS_CLK),
   .BAUD_RATE     (BAUD_RATE),
   .DATA_BITS     (UART_DATA_BIT),
-  .STOP_TICK     (UART_STOP_TICK),
-  .CLK_DIV       (UART_CLK_DIV),
-  .DIV_BIT       (UART_DIV_BIT)
+  .STOP_BIT      (UART_STOP_BIT)
 ) DUT_uart (
   .clk            (clk_pll),
   .rst_n          (rst_n_reg),
+  
   //rx interface
   .i_rx           (i_rx),
   .o_rx_done_tick (o_rx_done_tick),
