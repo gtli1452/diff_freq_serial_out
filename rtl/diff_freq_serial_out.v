@@ -69,41 +69,97 @@ assign mode_pattern  = mode_buf_next & {16{update_done_tick}};
 always @(posedge clk,  negedge rst_n) begin
   if (~rst_n)
     begin
-      state_reg   <= S_IDLE;
-      output_reg  <= 0;
-      freq_reg    <= 0;
-      sel_out_reg <= 0;
-      start_reg   <= 0;
-      stop_reg    <= 0;
-      mode_reg    <= 0;
+      state_reg     <= S_IDLE;
+      output_reg    <= 0;
+      freq_reg      <= 0;
+      sel_out_reg   <= 0;
+      start_reg     <= 0;
+      stop_reg      <= 0;
+      mode_reg      <= 0;
       start_buf_reg <= 0;
       stop_buf_reg  <= 0;
       mode_buf_reg  <= 0;
-      output_pattern[0] <= 0;
-      output_pattern[1] <= 0;
-      output_pattern[2] <= 0;
-      freq_pattern  [0] <= 0;
-      freq_pattern  [1] <= 0;
-      freq_pattern  [2] <= 0;
+      // output pattern 
+      output_pattern[0]  <= 0;
+      output_pattern[1]  <= 0;
+      output_pattern[2]  <= 0;
+      output_pattern[3]  <= 0;
+      output_pattern[4]  <= 0;
+      output_pattern[5]  <= 0;
+      output_pattern[6]  <= 0;
+      output_pattern[7]  <= 0;
+      output_pattern[8]  <= 0;
+      output_pattern[9]  <= 0;
+      output_pattern[10] <= 0;
+      output_pattern[11] <= 0;
+      output_pattern[12] <= 0;
+      output_pattern[13] <= 0;
+      output_pattern[14] <= 0;
+      output_pattern[15] <= 0;
+      // freq pattern
+      freq_pattern[0]    <= 0;
+      freq_pattern[1]    <= 0;
+      freq_pattern[2]    <= 0;
+      freq_pattern[3]    <= 0;
+      freq_pattern[4]    <= 0;
+      freq_pattern[5]    <= 0;
+      freq_pattern[6]    <= 0;
+      freq_pattern[7]    <= 0;
+      freq_pattern[8]    <= 0;
+      freq_pattern[9]    <= 0;
+      freq_pattern[10]   <= 0;
+      freq_pattern[11]   <= 0;
+      freq_pattern[12]   <= 0;
+      freq_pattern[13]   <= 0;
+      freq_pattern[14]   <= 0;
+      freq_pattern[15]   <= 0;
     end
   else
     begin
-      state_reg   <= state_next;
-      output_reg  <= output_next;
-      freq_reg    <= freq_next;
-      sel_out_reg <= sel_out_next;
-      start_reg   <= start_next;
-      stop_reg    <= stop_next;
-      mode_reg    <= mode_next;
+      state_reg     <= state_next;
+      output_reg    <= output_next;
+      freq_reg      <= freq_next;
+      sel_out_reg   <= sel_out_next;
+      start_reg     <= start_next;
+      stop_reg      <= stop_next;
+      mode_reg      <= mode_next;
       start_buf_reg <= start_buf_next;
       stop_buf_reg  <= stop_buf_next;
       mode_buf_reg  <= mode_buf_next;
-      output_pattern[0] <= output_pattern_next[0];
-      output_pattern[1] <= output_pattern_next[1];
-      output_pattern[2] <= output_pattern_next[2];
-      freq_pattern  [0] <= freq_pattern_next  [0];
-      freq_pattern  [1] <= freq_pattern_next  [1];
-      freq_pattern  [2] <= freq_pattern_next  [2];
+      // output pattern
+      output_pattern[0]  <= output_pattern_next[0];
+      output_pattern[1]  <= output_pattern_next[1];
+      output_pattern[2]  <= output_pattern_next[2];
+      output_pattern[3]  <= output_pattern_next[3];
+      output_pattern[4]  <= output_pattern_next[4];
+      output_pattern[5]  <= output_pattern_next[5];
+      output_pattern[6]  <= output_pattern_next[6];
+      output_pattern[7]  <= output_pattern_next[7];
+      output_pattern[8]  <= output_pattern_next[8];
+      output_pattern[9]  <= output_pattern_next[9];
+      output_pattern[10] <= output_pattern_next[10];
+      output_pattern[11] <= output_pattern_next[11];
+      output_pattern[12] <= output_pattern_next[12];
+      output_pattern[13] <= output_pattern_next[13];
+      output_pattern[14] <= output_pattern_next[14];
+      output_pattern[15] <= output_pattern_next[15];
+      // freq pattern
+      freq_pattern[0]    <= freq_pattern_next[0];
+      freq_pattern[1]    <= freq_pattern_next[1];
+      freq_pattern[2]    <= freq_pattern_next[2];
+      freq_pattern[3]    <= freq_pattern_next[3];
+      freq_pattern[4]    <= freq_pattern_next[4];
+      freq_pattern[5]    <= freq_pattern_next[5];
+      freq_pattern[6]    <= freq_pattern_next[6];
+      freq_pattern[7]    <= freq_pattern_next[7];
+      freq_pattern[8]    <= freq_pattern_next[8];
+      freq_pattern[9]    <= freq_pattern_next[9];
+      freq_pattern[10]   <= freq_pattern_next[10];
+      freq_pattern[11]   <= freq_pattern_next[11];
+      freq_pattern[12]   <= freq_pattern_next[12];
+      freq_pattern[13]   <= freq_pattern_next[13];
+      freq_pattern[14]   <= freq_pattern_next[14];
+      freq_pattern[15]   <= freq_pattern_next[15];
     end
 end
 
@@ -120,12 +176,41 @@ always @(*) begin
   stop_buf_next    = stop_buf_reg;
   mode_buf_next    = mode_buf_reg;
   update_done_tick = 0;
-  output_pattern_next[0] = output_pattern[0];
-  output_pattern_next[1] = output_pattern[1];
-  output_pattern_next[2] = output_pattern[2];
-  freq_pattern_next  [0] = freq_pattern  [0];
-  freq_pattern_next  [1] = freq_pattern  [1];
-  freq_pattern_next  [2] = freq_pattern  [2];
+  // output pattern
+  output_pattern_next[0]  = output_pattern[0];
+  output_pattern_next[1]  = output_pattern[1];
+  output_pattern_next[2]  = output_pattern[2];
+  output_pattern_next[3]  = output_pattern[3];
+  output_pattern_next[4]  = output_pattern[4];
+  output_pattern_next[5]  = output_pattern[5];
+  output_pattern_next[6]  = output_pattern[6];
+  output_pattern_next[7]  = output_pattern[7];
+  output_pattern_next[8]  = output_pattern[8];
+  output_pattern_next[9]  = output_pattern[9];
+  output_pattern_next[10] = output_pattern[10];
+  output_pattern_next[11] = output_pattern[11];
+  output_pattern_next[12] = output_pattern[12];
+  output_pattern_next[13] = output_pattern[13];
+  output_pattern_next[14] = output_pattern[14];
+  output_pattern_next[15] = output_pattern[15];
+  // freq pattern
+  freq_pattern_next[0]    = freq_pattern[0];
+  freq_pattern_next[1]    = freq_pattern[1];
+  freq_pattern_next[2]    = freq_pattern[2];
+  freq_pattern_next[3]    = freq_pattern[3];
+  freq_pattern_next[4]    = freq_pattern[4];
+  freq_pattern_next[5]    = freq_pattern[5];
+  freq_pattern_next[6]    = freq_pattern[6];
+  freq_pattern_next[7]    = freq_pattern[7];
+  freq_pattern_next[8]    = freq_pattern[8];
+  freq_pattern_next[9]    = freq_pattern[9];
+  freq_pattern_next[10]   = freq_pattern[10];
+  freq_pattern_next[11]   = freq_pattern[11];
+  freq_pattern_next[12]   = freq_pattern[12];
+  freq_pattern_next[13]   = freq_pattern[13];
+  freq_pattern_next[14]   = freq_pattern[14];
+  freq_pattern_next[15]   = freq_pattern[15];
+
   case (state_reg)
     S_IDLE: begin
       if (decoder_done_tick)
