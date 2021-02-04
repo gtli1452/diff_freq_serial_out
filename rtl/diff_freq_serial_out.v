@@ -31,8 +31,10 @@ wire                o_decode_mode;
 wire                decoder_done_tick;
 
 // Serial out signal
-reg [DATA_BIT-1:0] output_pattern [15:0];
-reg [DATA_BIT-1:0] freq_pattern   [15:0];
+reg [DATA_BIT-1:0] output_pattern      [15:0];
+reg [DATA_BIT-1:0] output_pattern_next [15:0];
+reg [DATA_BIT-1:0] freq_pattern        [15:0];
+reg [DATA_BIT-1:0] freq_pattern_next   [15:0];
 wire [15:0]        start_pattern;
 wire [15:0]        stop_pattern;
 wire [15:0]        mode_pattern;
@@ -77,6 +79,12 @@ always @(posedge clk,  negedge rst_n) begin
       start_buf_reg <= 0;
       stop_buf_reg  <= 0;
       mode_buf_reg  <= 0;
+      output_pattern[0] <= 0;
+      output_pattern[1] <= 0;
+      output_pattern[2] <= 0;
+      freq_pattern  [0] <= 0;
+      freq_pattern  [1] <= 0;
+      freq_pattern  [2] <= 0;
     end
   else
     begin
@@ -90,6 +98,12 @@ always @(posedge clk,  negedge rst_n) begin
       start_buf_reg <= start_buf_next;
       stop_buf_reg  <= stop_buf_next;
       mode_buf_reg  <= mode_buf_next;
+      output_pattern[0] <= output_pattern_next[0];
+      output_pattern[1] <= output_pattern_next[1];
+      output_pattern[2] <= output_pattern_next[2];
+      freq_pattern  [0] <= freq_pattern_next  [0];
+      freq_pattern  [1] <= freq_pattern_next  [1];
+      freq_pattern  [2] <= freq_pattern_next  [2];
     end
 end
 
@@ -106,6 +120,12 @@ always @(*) begin
   stop_buf_next    = stop_buf_reg;
   mode_buf_next    = mode_buf_reg;
   update_done_tick = 0;
+  output_pattern_next[0] = output_pattern[0];
+  output_pattern_next[1] = output_pattern[1];
+  output_pattern_next[2] = output_pattern[2];
+  freq_pattern_next  [0] = freq_pattern  [0];
+  freq_pattern_next  [1] = freq_pattern  [1];
+  freq_pattern_next  [2] = freq_pattern  [2];
   case (state_reg)
     S_IDLE: begin
       if (decoder_done_tick)
@@ -123,33 +143,33 @@ always @(*) begin
     S_UPDATE: begin
       case (sel_out_reg)
         4'd0: begin
-          output_pattern[0] = output_reg;
-          freq_pattern  [0] = freq_reg;
-          start_buf_next[0] = start_reg;
-          stop_buf_next [0] = stop_reg;
-          mode_buf_next [0] = mode_reg;
-          state_next        = S_IDLE;
+          output_pattern_next[0] = output_reg;
+          freq_pattern_next  [0] = freq_reg;
+          start_buf_next     [0] = start_reg;
+          stop_buf_next      [0] = stop_reg;
+          mode_buf_next      [0] = mode_reg;
+          state_next             = S_IDLE;
         end
 
         4'd1: begin
-          output_pattern[1] = output_reg;
-          freq_pattern  [1] = freq_reg;
-          start_buf_next[1] = start_reg;
-          stop_buf_next [1] = stop_reg;
-          mode_buf_next [1] = mode_reg;
-          state_next        = S_IDLE;
+          output_pattern_next[1] = output_reg;
+          freq_pattern_next  [1] = freq_reg;
+          start_buf_next     [1] = start_reg;
+          stop_buf_next      [1] = stop_reg;
+          mode_buf_next      [1] = mode_reg;
+          state_next             = S_IDLE;
         end
 
         4'd2: begin
-          output_pattern[2] = output_reg;
-          freq_pattern  [2] = freq_reg;
-          start_buf_next[2] = start_reg;
-          stop_buf_next [2] = stop_reg;
-          mode_buf_next [2] = mode_reg;
-          state_next        = S_DONE;
+          output_pattern_next[2] = output_reg;
+          freq_pattern_next  [2] = freq_reg;
+          start_buf_next     [2] = start_reg;
+          stop_buf_next      [2] = stop_reg;
+          mode_buf_next      [2] = mode_reg;
+          state_next             = S_DONE;
         end
 
-        default: state_next = S_DONE;
+        default: state_next = S_IDLE;
       endcase
     end
 
