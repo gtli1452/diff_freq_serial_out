@@ -39,6 +39,7 @@ reg [1:0]           state_reg, state_next;
 reg [3:0]           tick_count_reg, tick_count_next; // i_sample_tick counter
 reg [2:0]           data_count_reg, data_count_next; // data bit counter
 reg [DATA_BITS-1:0] data_buf_reg, data_buf_next;     // data buf
+reg                 rx_reg, rx_next;
 
 // Body
 // FSMD state & data registers
@@ -49,6 +50,7 @@ always @(posedge clk, negedge rst_n) begin
       tick_count_reg <= 0;
       data_count_reg <= 0;
       data_buf_reg   <= 0;
+      rx_reg         <= 1;
     end
   else
     begin
@@ -56,6 +58,7 @@ always @(posedge clk, negedge rst_n) begin
       tick_count_reg <= tick_count_next;
       data_count_reg <= data_count_next;
       data_buf_reg   <= data_buf_next;
+      rx_reg         <= rx_next;
     end
 end
 
@@ -66,11 +69,12 @@ always @(*) begin
   data_count_next = data_count_reg;
   data_buf_next   = data_buf_reg;
   o_rx_done_tick  = 1'b0;
+  rx_next         = i_rx;
 
   case (state_reg)
     // S_Idle: waiting for the start bit
     S_IDLE: begin
-      if (~i_rx)
+      if (~rx_reg)
         begin
           state_next      = S_START;
           tick_count_next = 0;
@@ -81,11 +85,16 @@ always @(*) begin
     S_START: begin
       if (i_sample_tick)
         begin
-          if (tick_count_reg == 7)
-            begin // sample the middle of start bit (16 ticks per bit)
-              state_next      = S_DATA;
-              tick_count_next = 0;
-              data_count_next = 0;
+          if (tick_count_reg == 7) // sample the middle of start bit (16 ticks per bit)
+            begin
+              if (~rx_reg) // check rx is low at START bit
+                begin
+                  state_next      = S_DATA;
+                  tick_count_next = 0;
+                  data_count_next = 0;
+                end
+              else
+                  state_next      = S_IDLE;
             end
           else
             tick_count_next = tick_count_reg + 1'b1;
@@ -99,7 +108,7 @@ always @(*) begin
           if (tick_count_reg == 15)
             begin
               tick_count_next = 0;
-              data_buf_next   = {i_rx, data_buf_reg[7:1]}; // right-shit 1-bit
+              data_buf_next   = {rx_reg, data_buf_reg[7:1]}; // right-shit 1-bit
               if (data_count_reg == (DATA_BITS - 1))
                 state_next = S_STOP;
               else
