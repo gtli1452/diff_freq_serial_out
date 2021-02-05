@@ -10,15 +10,13 @@ module diff_freq_serial_out #(
   parameter DATA_BIT     = 32,
   parameter PACK_NUM     = 9
 ) (
-  input        clk,
-  input        rst_n,
-  input  [7:0] i_data,
-  input        i_rx_done_tick,
-  output       o_serial_out0,
-  output       o_serial_out1,
-  output       o_serial_out2,
-  output       o_bit_tick,
-  output       o_done_tick
+  input         clk,
+  input         rst_n,
+  input  [7:0]  i_data,
+  input         i_rx_done_tick,
+  output [15:0] o_serial_out,
+  output        o_bit_tick,
+  output        o_done_tick
 );
 
 // Decoder signal
@@ -251,6 +249,15 @@ always @(*) begin
           start_buf_next     [2] = start_reg;
           stop_buf_next      [2] = stop_reg;
           mode_buf_next      [2] = mode_reg;
+          state_next             = S_IDLE;
+        end
+
+        4'd3: begin
+          output_pattern_next[3] = output_reg;
+          freq_pattern_next  [3] = freq_reg;
+          start_buf_next     [3] = start_reg;
+          stop_buf_next      [3] = stop_reg;
+          mode_buf_next      [3] = mode_reg;
           state_next             = S_DONE;
         end
 
@@ -294,7 +301,7 @@ serial_out #(
   .i_mode           (mode_pattern  [0]), // one-shot, repeat
   .i_output_pattern (output_pattern[0]),
   .i_freq_pattern   (freq_pattern  [0]),
-  .o_serial_out     (o_serial_out0),    // idle state is low
+  .o_serial_out     (o_serial_out  [0]),    // idle state is low
   .o_bit_tick       (o_bit_tick),
   .o_done_tick      (o_done_tick)
 );
@@ -309,7 +316,7 @@ serial_out #(
   .i_mode           (mode_pattern  [1]), // one-shot, repeat
   .i_output_pattern (output_pattern[1]),
   .i_freq_pattern   (freq_pattern  [1]),
-  .o_serial_out     (o_serial_out1),     // idle state is low
+  .o_serial_out     (o_serial_out  [1]),     // idle state is low
   .o_bit_tick       (),
   .o_done_tick      ()
 );
@@ -324,7 +331,22 @@ serial_out #(
   .i_mode           (mode_pattern  [2]), // one-shot, repeat
   .i_output_pattern (output_pattern[2]),
   .i_freq_pattern   (freq_pattern  [2]),
-  .o_serial_out     (o_serial_out2),     // idle state is low
+  .o_serial_out     (o_serial_out  [2]),     // idle state is low
+  .o_bit_tick       (),
+  .o_done_tick      ()
+);
+
+serial_out #(
+  .DATA_BIT     (DATA_BIT)
+) serial_out3 (
+  .clk              (clk),
+  .rst_n            (rst_n),
+  .i_start          (start_pattern [3]),
+  .i_stop           (stop_pattern  [3]),
+  .i_mode           (mode_pattern  [3]), // one-shot, repeat
+  .i_output_pattern (output_pattern[3]),
+  .i_freq_pattern   (freq_pattern  [3]),
+  .o_serial_out     (o_serial_out  [3]),     // idle state is low
   .o_bit_tick       (),
   .o_done_tick      ()
 );
