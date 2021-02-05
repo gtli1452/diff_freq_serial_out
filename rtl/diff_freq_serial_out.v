@@ -7,8 +7,9 @@ Release     : 12/16/2020 v1.0
 */
 
 module diff_freq_serial_out #(
-  parameter DATA_BIT     = 32,
-  parameter PACK_NUM     = 9
+  parameter DATA_BIT   = 32,
+  parameter PACK_NUM   = 9,
+  parameter OUTPUT_NUM = 16
 ) (
   input         clk,
   input         rst_n,
@@ -78,10 +79,10 @@ always @(posedge clk,  negedge rst_n) begin
       channel_stop  <= 0;
       channel_mode  <= 0;
       // output pattern
-      for (i = 0; i < 16; i = i + 1)
+      for (i = 0; i < OUTPUT_NUM; i = i + 1)
         channel_output[i] <= 0;
       // freq pattern
-      for (i = 0; i < 16; i = i + 1)
+      for (i = 0; i < OUTPUT_NUM; i = i + 1)
         channel_freq[i] <= 0;
     end
   else
@@ -98,10 +99,10 @@ always @(posedge clk,  negedge rst_n) begin
       channel_stop  <= channel_stop_next;
       channel_mode  <= channel_mode_next;
       // output pattern
-      for (i = 0; i < 16; i = i + 1)
+      for (i = 0; i < OUTPUT_NUM; i = i + 1)
         channel_output[i] <= channel_output_next[i];
       // freq pattern
-      for (i = 0; i < 16; i = i + 1)
+      for (i = 0; i < OUTPUT_NUM; i = i + 1)
         channel_freq[i] <= channel_freq_next[i];
     end
 end
@@ -121,10 +122,10 @@ always @(*) begin
   channel_mode_next  = channel_mode;
   update_tick   = 0;
   // output pattern
-  for (i = 0; i < 16; i = i + 1)
+  for (i = 0; i < OUTPUT_NUM; i = i + 1)
     channel_output_next[i] = channel_output[i];
   // freq pattern
-  for (i = 0; i < 16; i = i + 1)
+  for (i = 0; i < OUTPUT_NUM; i = i + 1)
     channel_freq_next[i] = channel_freq[i];
 
   case (state_reg)
@@ -142,7 +143,7 @@ always @(*) begin
     end
 
     S_UPDATE: begin
-      if (sel_out_reg == 4'd3)
+      if (sel_out_reg == OUTPUT_NUM-1)
         state_next  = S_DONE;
       else
         state_next  = S_IDLE;
@@ -182,7 +183,7 @@ decoder #(
 
 // Use generate loop to create instances
 genvar j;
-generate for (j = 0; j < 4; j = j + 1)
+generate for (j = 0; j < OUTPUT_NUM; j = j + 1)
   begin: serial_out_entity
     serial_out #(
     .DATA_BIT           (DATA_BIT)
