@@ -13,8 +13,8 @@ module diff_freq_serial_out_tb ();
 localparam DATA_BIT      = 32;
 localparam PACK_NUM      = 9; // PACK_NUM = (out_pattern + freq_pattern + control_bits)/8 = (32+32+8)/8
 
-localparam SYS_CLK       = 100_000_000;
-localparam SYS_PERIOD_NS = 10;     // 1/100Mhz = 10ns
+localparam SYS_CLK       = 10_000_000;
+localparam SYS_PERIOD_NS = 100;     // 1/100Mhz = 10ns
 localparam IDLE_LOW      = 1'b0;
 localparam IDLE_HIGH     = 1'b1;
 localparam ONE_SHOT      = 1'b0;
@@ -35,9 +35,11 @@ reg rst_n = 0;
 // diff_freq_serial_out signal
 wire o_bit_tick;
 wire o_done_tick;   // tick one clock when transmission is done
-wire o_serial_out0; // idle state is low
-wire o_serial_out1; // idle state is low
-wire o_serial_out2; // idle state is low
+wire [15:0] o_serial_out;
+wire o_serial_out0 = o_serial_out[0]; // idle state is low
+wire o_serial_out1 = o_serial_out[1]; // idle state is low
+wire o_serial_out2 = o_serial_out[2]; // idle state is low
+wire o_serial_out3 = o_serial_out[3]; // idle state is low
 
 // UART signal
 reg  tb_RxSerial;
@@ -74,9 +76,7 @@ diff_freq_serial_out #(
   .rst_n          (rst_n),
   .i_data         (tb_received_data),
   .i_rx_done_tick (tb_rx_done),
-  .o_serial_out0  (o_serial_out0), // idle state is low
-  .o_serial_out1  (o_serial_out1),
-  .o_serial_out2  (o_serial_out2),
+  .o_serial_out   (o_serial_out), // idle state is low
   .o_bit_tick     (o_bit_tick),
   .o_done_tick    (o_done_tick)
 );
@@ -108,6 +108,7 @@ initial begin
   OUT_32BIT_CHANNEL(0, ONE_SHOT);
   OUT_32BIT_CHANNEL(1, REPEAT);
   OUT_32BIT_CHANNEL(2, ONE_SHOT);
+  OUT_32BIT_CHANNEL(3, ONE_SHOT);
   @(posedge o_done_tick);
   
   //$finish;
