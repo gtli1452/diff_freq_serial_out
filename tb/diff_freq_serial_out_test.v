@@ -23,14 +23,14 @@ module diff_freq_serial_out_test (
 );
 
 // Serial output parameter 
-localparam DATA_BIT       = 32;
-localparam PACK_NUM       = (DATA_BIT/8)*2+1; // byte_num of a pack = output_pattern (32-bit) + freq_pattern (32-bit) + control_byte
+localparam DATA_BIT      = 32;
+localparam PACK_NUM      = (DATA_BIT/8)*2+1; // byte_num of a pack = output_pattern (32-bit) + freq_pattern (32-bit) + control_byte
 
 // Uart parameter
-localparam SYS_CLK        = 100_000_000; // 100Mhz
-localparam BAUD_RATE      = 256000;
-localparam UART_DATA_BIT  = 8;           // 8-bit data
-localparam UART_STOP_BIT  = 1;           // 1-bit stop (16 ticks/bit)
+localparam SYS_CLK       = 100_000_000; // 100Mhz
+localparam BAUD_RATE     = 256000;
+localparam UART_DATA_BIT = 8;           // 8-bit data
+localparam UART_STOP_BIT = 1;           // 1-bit stop (16 ticks/bit)
 
 // Signal declaration
 reg         rst_n_reg, rst_n_next; // synchronous reset
