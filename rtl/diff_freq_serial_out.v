@@ -53,11 +53,13 @@ reg [15:0]         channel_start, channel_start_next;
 reg [15:0]         channel_stop,  channel_stop_next;
 reg [15:0]         channel_mode,  channel_mode_next;
 
-wire [15:0] start_tick;
-
 // Wire assignment
 // Create start_tick for one-shot
+wire [15:0] start_tick;
 assign start_tick = channel_start & {16{update_tick}};
+
+// for loop variable
+integer i;
 
 // Body
 // FSMD state & data register
@@ -75,40 +77,12 @@ always @(posedge clk,  negedge rst_n) begin
       channel_start <= 0;
       channel_stop  <= 0;
       channel_mode  <= 0;
-      // output pattern 
-      channel_output[0]  <= 0;
-      channel_output[1]  <= 0;
-      channel_output[2]  <= 0;
-      channel_output[3]  <= 0;
-      channel_output[4]  <= 0;
-      channel_output[5]  <= 0;
-      channel_output[6]  <= 0;
-      channel_output[7]  <= 0;
-      channel_output[8]  <= 0;
-      channel_output[9]  <= 0;
-      channel_output[10] <= 0;
-      channel_output[11] <= 0;
-      channel_output[12] <= 0;
-      channel_output[13] <= 0;
-      channel_output[14] <= 0;
-      channel_output[15] <= 0;
+      // output pattern
+      for (i = 0; i < 16; i = i + 1)
+        channel_output[i] <= 0;
       // freq pattern
-      channel_freq[0]    <= 0;
-      channel_freq[1]    <= 0;
-      channel_freq[2]    <= 0;
-      channel_freq[3]    <= 0;
-      channel_freq[4]    <= 0;
-      channel_freq[5]    <= 0;
-      channel_freq[6]    <= 0;
-      channel_freq[7]    <= 0;
-      channel_freq[8]    <= 0;
-      channel_freq[9]    <= 0;
-      channel_freq[10]   <= 0;
-      channel_freq[11]   <= 0;
-      channel_freq[12]   <= 0;
-      channel_freq[13]   <= 0;
-      channel_freq[14]   <= 0;
-      channel_freq[15]   <= 0;
+      for (i = 0; i < 16; i = i + 1)
+        channel_freq[i] <= 0;
     end
   else
     begin
@@ -124,39 +98,11 @@ always @(posedge clk,  negedge rst_n) begin
       channel_stop  <= channel_stop_next;
       channel_mode  <= channel_mode_next;
       // output pattern
-      channel_output[0]  <= channel_output_next[0];
-      channel_output[1]  <= channel_output_next[1];
-      channel_output[2]  <= channel_output_next[2];
-      channel_output[3]  <= channel_output_next[3];
-      channel_output[4]  <= channel_output_next[4];
-      channel_output[5]  <= channel_output_next[5];
-      channel_output[6]  <= channel_output_next[6];
-      channel_output[7]  <= channel_output_next[7];
-      channel_output[8]  <= channel_output_next[8];
-      channel_output[9]  <= channel_output_next[9];
-      channel_output[10] <= channel_output_next[10];
-      channel_output[11] <= channel_output_next[11];
-      channel_output[12] <= channel_output_next[12];
-      channel_output[13] <= channel_output_next[13];
-      channel_output[14] <= channel_output_next[14];
-      channel_output[15] <= channel_output_next[15];
+      for (i = 0; i < 16; i = i + 1)
+        channel_output[i] <= channel_output_next[i];
       // freq pattern
-      channel_freq[0]    <= channel_freq_next[0];
-      channel_freq[1]    <= channel_freq_next[1];
-      channel_freq[2]    <= channel_freq_next[2];
-      channel_freq[3]    <= channel_freq_next[3];
-      channel_freq[4]    <= channel_freq_next[4];
-      channel_freq[5]    <= channel_freq_next[5];
-      channel_freq[6]    <= channel_freq_next[6];
-      channel_freq[7]    <= channel_freq_next[7];
-      channel_freq[8]    <= channel_freq_next[8];
-      channel_freq[9]    <= channel_freq_next[9];
-      channel_freq[10]   <= channel_freq_next[10];
-      channel_freq[11]   <= channel_freq_next[11];
-      channel_freq[12]   <= channel_freq_next[12];
-      channel_freq[13]   <= channel_freq_next[13];
-      channel_freq[14]   <= channel_freq_next[14];
-      channel_freq[15]   <= channel_freq_next[15];
+      for (i = 0; i < 16; i = i + 1)
+        channel_freq[i] <= channel_freq_next[i];
     end
 end
 
@@ -175,39 +121,11 @@ always @(*) begin
   channel_mode_next  = channel_mode;
   update_tick   = 0;
   // output pattern
-  channel_output_next[0]  = channel_output[0];
-  channel_output_next[1]  = channel_output[1];
-  channel_output_next[2]  = channel_output[2];
-  channel_output_next[3]  = channel_output[3];
-  channel_output_next[4]  = channel_output[4];
-  channel_output_next[5]  = channel_output[5];
-  channel_output_next[6]  = channel_output[6];
-  channel_output_next[7]  = channel_output[7];
-  channel_output_next[8]  = channel_output[8];
-  channel_output_next[9]  = channel_output[9];
-  channel_output_next[10] = channel_output[10];
-  channel_output_next[11] = channel_output[11];
-  channel_output_next[12] = channel_output[12];
-  channel_output_next[13] = channel_output[13];
-  channel_output_next[14] = channel_output[14];
-  channel_output_next[15] = channel_output[15];
+  for (i = 0; i < 16; i = i + 1)
+    channel_output_next[i] = channel_output[i];
   // freq pattern
-  channel_freq_next[0]    = channel_freq[0];
-  channel_freq_next[1]    = channel_freq[1];
-  channel_freq_next[2]    = channel_freq[2];
-  channel_freq_next[3]    = channel_freq[3];
-  channel_freq_next[4]    = channel_freq[4];
-  channel_freq_next[5]    = channel_freq[5];
-  channel_freq_next[6]    = channel_freq[6];
-  channel_freq_next[7]    = channel_freq[7];
-  channel_freq_next[8]    = channel_freq[8];
-  channel_freq_next[9]    = channel_freq[9];
-  channel_freq_next[10]   = channel_freq[10];
-  channel_freq_next[11]   = channel_freq[11];
-  channel_freq_next[12]   = channel_freq[12];
-  channel_freq_next[13]   = channel_freq[13];
-  channel_freq_next[14]   = channel_freq[14];
-  channel_freq_next[15]   = channel_freq[15];
+  for (i = 0; i < 16; i = i + 1)
+    channel_freq_next[i] = channel_freq[i];
 
   case (state_reg)
     S_IDLE: begin
@@ -262,64 +180,25 @@ decoder #(
   .o_done_tick      (o_decode_done_tick)
 );
 
-serial_out #(
-  .DATA_BIT     (DATA_BIT)
-) serial_out0 (
-  .clk              (clk),
-  .rst_n            (rst_n),
-  .i_start          (start_tick    [0]),
-  .i_stop           (channel_stop  [0]),
-  .i_mode           (channel_mode  [0]), // one-shot, repeat
-  .i_output_pattern (channel_output[0]),
-  .i_freq_pattern   (channel_freq  [0]),
-  .o_serial_out     (o_serial_out  [0]), // idle state is low
-  .o_bit_tick       (o_bit_tick),
-  .o_done_tick      (o_done_tick)
-);
-
-serial_out #(
-  .DATA_BIT     (DATA_BIT)
-) serial_out1 (
-  .clk              (clk),
-  .rst_n            (rst_n),
-  .i_start          (start_tick    [1]),
-  .i_stop           (channel_stop  [1]),
-  .i_mode           (channel_mode  [1]), // one-shot, repeat
-  .i_output_pattern (channel_output[1]),
-  .i_freq_pattern   (channel_freq  [1]),
-  .o_serial_out     (o_serial_out  [1]), // idle state is low
-  .o_bit_tick       (),
-  .o_done_tick      ()
-);
-
-serial_out #(
-  .DATA_BIT     (DATA_BIT)
-) serial_out2 (
-  .clk              (clk),
-  .rst_n            (rst_n),
-  .i_start          (start_tick    [2]),
-  .i_stop           (channel_stop  [2]),
-  .i_mode           (channel_mode  [2]), // one-shot, repeat
-  .i_output_pattern (channel_output[2]),
-  .i_freq_pattern   (channel_freq  [2]),
-  .o_serial_out     (o_serial_out  [2]), // idle state is low
-  .o_bit_tick       (),
-  .o_done_tick      ()
-);
-
-serial_out #(
-  .DATA_BIT     (DATA_BIT)
-) serial_out3 (
-  .clk              (clk),
-  .rst_n            (rst_n),
-  .i_start          (start_tick    [3]),
-  .i_stop           (channel_stop  [3]),
-  .i_mode           (channel_mode  [3]), // one-shot, repeat
-  .i_output_pattern (channel_output[3]),
-  .i_freq_pattern   (channel_freq  [3]),
-  .o_serial_out     (o_serial_out  [3]), // idle state is low
-  .o_bit_tick       (),
-  .o_done_tick      ()
-);
+// Use generate loop to create instances
+genvar j;
+generate for (j = 0; j < 4; j = j + 1)
+  begin: serial_out_entity
+    serial_out #(
+    .DATA_BIT           (DATA_BIT)
+    ) channel (
+      .clk              (clk),
+      .rst_n            (rst_n),
+      .i_start          (start_tick    [j]),
+      .i_stop           (channel_stop  [j]),
+      .i_mode           (channel_mode  [j]), // one-shot, repeat
+      .i_output_pattern (channel_output[j]),
+      .i_freq_pattern   (channel_freq  [j]),
+      .o_serial_out     (o_serial_out  [j]), // idle state is low
+      .o_bit_tick       (),
+      .o_done_tick      ()
+    );
+  end
+endgenerate
 
 endmodule
