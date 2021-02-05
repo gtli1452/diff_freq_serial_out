@@ -98,7 +98,7 @@ always @(*) begin
       o_start          = data_buf_reg[FREQ_INDEX];
       o_stop           = data_buf_reg[FREQ_INDEX+1];
       o_mode           = data_buf_reg[FREQ_INDEX+2];
-      o_sel_out        = data_buf_reg[FREQ_INDEX+5:FREQ_INDEX+4];
+      o_sel_out        = data_buf_reg[FREQ_INDEX+7:FREQ_INDEX+4];
     end
 
     default: state_next = S_IDLE;
