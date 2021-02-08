@@ -36,7 +36,7 @@ module diff_freq_serial_out_test (
 
 // Serial output parameter 
 localparam       DATA_BIT        = 32;
-localparam       PACK_NUM        = (DATA_BIT/8)*2+1; // byte_num of a pack = output_pattern (32-bit) + freq_pattern (32-bit) + control_byte
+localparam       PACK_NUM        = (DATA_BIT/8)*2+3; // byte_num of a pack = output_pattern (32-bit) + freq_pattern (32-bit) + control_byte + hi/lo_freq_byte
 localparam [7:0] LOW_PERIOD_CLK  = 20;
 localparam [7:0] HIGH_PERIOD_CLK = 5;
 
