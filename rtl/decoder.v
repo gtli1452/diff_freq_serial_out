@@ -8,7 +8,7 @@ Release     : 12/23/2020 v1.0
 
 module decoder #(
   parameter DATA_BIT = 32,
-  parameter PACK_NUM = 9
+  parameter PACK_NUM = 11
 ) (
   input                     clk,
   input                     rst_n,
@@ -20,6 +20,8 @@ module decoder #(
   output reg                o_start,
   output reg                o_stop,
   output reg                o_mode,
+  output reg [7:0]          o_slow_period,
+  output reg [7:0]          o_fast_period,
   output reg                o_done_tick
 );
 
@@ -65,6 +67,8 @@ always @(*) begin
   o_stop           = 0;
   o_mode           = 0;
   o_sel_out        = 0;
+  o_slow_period    = 0;
+  o_fast_period    = 0;
 
   case (state_reg)
     S_IDLE: begin
@@ -99,6 +103,8 @@ always @(*) begin
       o_stop           = data_buf_reg[FREQ_INDEX+1];
       o_mode           = data_buf_reg[FREQ_INDEX+2];
       o_sel_out        = data_buf_reg[FREQ_INDEX+7:FREQ_INDEX+4];
+      o_slow_period    = data_buf_reg[FREQ_INDEX+15:FREQ_INDEX+8];
+      o_fast_period    = data_buf_reg[FREQ_INDEX+23:FREQ_INDEX+16];
     end
 
     default: state_next = S_IDLE;
