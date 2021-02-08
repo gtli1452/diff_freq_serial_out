@@ -28,15 +28,17 @@ module diff_freq_serial_out_test (
   output o_bit_tick,     // PIN_R10
   output o_done_tick,    // PIN_T8
   // UART
-  input  i_rx,          // PIN_K12
-  output o_tx,          // PIN_M12
+  input  i_rx,           // PIN_K12
+  output o_tx,           // PIN_M12
   // PLL
-  output o_pll_locked   // PIN_R16
+  output o_pll_locked    // PIN_R16
 );
 
 // Serial output parameter 
-localparam DATA_BIT      = 32;
-localparam PACK_NUM      = (DATA_BIT/8)*2+1; // byte_num of a pack = output_pattern (32-bit) + freq_pattern (32-bit) + control_byte
+localparam       DATA_BIT        = 32;
+localparam       PACK_NUM        = (DATA_BIT/8)*2+1; // byte_num of a pack = output_pattern (32-bit) + freq_pattern (32-bit) + control_byte
+localparam [7:0] LOW_PERIOD_CLK  = 20;
+localparam [7:0] HIGH_PERIOD_CLK = 5;
 
 // Uart parameter
 localparam SYS_CLK       = 100_000_000; // 100Mhz
@@ -88,7 +90,9 @@ pll pll_100M (
 
 diff_freq_serial_out #(
   .DATA_BIT       (DATA_BIT),
-  .PACK_NUM       (PACK_NUM)
+  .PACK_NUM       (PACK_NUM),
+  .LOW_PERIOD_CLK (LOW_PERIOD_CLK),
+  .HIGH_PERIOD_CLK(HIGH_PERIOD_CLK)
 ) DUT (
   .clk            (clk_pll),
   .rst_n          (rst_n_reg),
@@ -100,10 +104,10 @@ diff_freq_serial_out #(
 );
 
 UART #(
-  .SYS_CLK       (SYS_CLK),
-  .BAUD_RATE     (BAUD_RATE),
-  .DATA_BITS     (UART_DATA_BIT),
-  .STOP_BIT      (UART_STOP_BIT)
+  .SYS_CLK        (SYS_CLK),
+  .BAUD_RATE      (BAUD_RATE),
+  .DATA_BITS      (UART_DATA_BIT),
+  .STOP_BIT       (UART_STOP_BIT)
 ) DUT_uart (
   .clk            (clk_pll),
   .rst_n          (rst_n_reg),

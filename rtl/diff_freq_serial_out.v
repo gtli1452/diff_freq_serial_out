@@ -7,9 +7,11 @@ Release     : 12/16/2020 v1.0
 */
 
 module diff_freq_serial_out #(
-  parameter DATA_BIT   = 32,
-  parameter PACK_NUM   = 9,
-  parameter OUTPUT_NUM = 16
+  parameter DATA_BIT        = 32,
+  parameter PACK_NUM        = 9,
+  parameter OUTPUT_NUM      = 16,
+  parameter LOW_PERIOD_CLK  = 9,
+  parameter HIGH_PERIOD_CLK = 3
 ) (
   input         clk,
   input         rst_n,
@@ -186,7 +188,9 @@ genvar j;
 generate for (j = 0; j < OUTPUT_NUM; j = j + 1)
   begin: serial_out_entity
     serial_out #(
-    .DATA_BIT           (DATA_BIT)
+    .DATA_BIT           (DATA_BIT),
+    .LOW_FREQ           (LOW_PERIOD_CLK),
+    .HIGH_FREQ          (HIGH_PERIOD_CLK)
     ) channel (
       .clk              (clk),
       .rst_n            (rst_n),
