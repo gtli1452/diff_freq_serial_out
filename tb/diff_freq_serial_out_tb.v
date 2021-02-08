@@ -19,8 +19,8 @@ localparam IDLE_LOW      = 1'b0;
 localparam IDLE_HIGH     = 1'b1;
 localparam ONE_SHOT      = 1'b0;
 localparam REPEAT        = 1'b1;
-localparam LOW_SPEED     = 1'b0;
-localparam HIGH_SPEED    = 1'b1;
+localparam [7:0] LOW_PERIOD_CLK  = 20;
+localparam [7:0] HIGH_PERIOD_CLK = 5;
 
 localparam BAUD_RATE        = 19200;
 localparam CLK_PER_UART_BIT = SYS_CLK/BAUD_RATE;
@@ -36,10 +36,22 @@ reg rst_n = 0;
 wire o_bit_tick;
 wire o_done_tick;   // tick one clock when transmission is done
 wire [15:0] o_serial_out;
-wire o_serial_out0 = o_serial_out[0]; // idle state is low
-wire o_serial_out1 = o_serial_out[1]; // idle state is low
-wire o_serial_out2 = o_serial_out[2]; // idle state is low
-wire o_serial_out3 = o_serial_out[3]; // idle state is low
+wire o_serial_out0  = o_serial_out[0]; // idle state is low
+wire o_serial_out1  = o_serial_out[1];
+wire o_serial_out2  = o_serial_out[2];
+wire o_serial_out3  = o_serial_out[3];
+wire o_serial_out4  = o_serial_out[4];
+wire o_serial_out5  = o_serial_out[5];
+wire o_serial_out6  = o_serial_out[6];
+wire o_serial_out7  = o_serial_out[7];
+wire o_serial_out8  = o_serial_out[8];
+wire o_serial_out9  = o_serial_out[9];
+wire o_serial_out10 = o_serial_out[10];
+wire o_serial_out11 = o_serial_out[11];
+wire o_serial_out12 = o_serial_out[12];
+wire o_serial_out13 = o_serial_out[13];
+wire o_serial_out14 = o_serial_out[14];
+wire o_serial_out15 = o_serial_out[15];
 
 // UART signal
 reg  tb_RxSerial;
@@ -69,8 +81,10 @@ initial begin
 end
 
 diff_freq_serial_out #(
-  .DATA_BIT    (DATA_BIT),
-  .PACK_NUM    (PACK_NUM)
+  .DATA_BIT       (DATA_BIT),
+  .PACK_NUM       (PACK_NUM),
+  .LOW_PERIOD_CLK (LOW_PERIOD_CLK),
+  .HIGH_PERIOD_CLK(HIGH_PERIOD_CLK)
 ) serial_out_unit (
   .clk            (clk),
   .rst_n          (rst_n),
@@ -105,10 +119,22 @@ UART #(
 initial begin
   @(posedge rst_n);       // wait for finish reset
   
-  OUT_32BIT_CHANNEL(0, ONE_SHOT);
-  OUT_32BIT_CHANNEL(1, REPEAT);
-  OUT_32BIT_CHANNEL(2, ONE_SHOT);
-  OUT_32BIT_CHANNEL(3, ONE_SHOT);
+  OUT_32BIT_CHANNEL(0,  ONE_SHOT);
+  OUT_32BIT_CHANNEL(1,  REPEAT);
+  OUT_32BIT_CHANNEL(2,  ONE_SHOT);
+  OUT_32BIT_CHANNEL(3,  ONE_SHOT);
+  OUT_32BIT_CHANNEL(4,  ONE_SHOT);
+  OUT_32BIT_CHANNEL(5,  REPEAT);
+  OUT_32BIT_CHANNEL(6,  ONE_SHOT);
+  OUT_32BIT_CHANNEL(7,  ONE_SHOT);
+  OUT_32BIT_CHANNEL(8,  ONE_SHOT);
+  OUT_32BIT_CHANNEL(9,  REPEAT);
+  OUT_32BIT_CHANNEL(10, ONE_SHOT);
+  OUT_32BIT_CHANNEL(11, ONE_SHOT);
+  OUT_32BIT_CHANNEL(12, ONE_SHOT);
+  OUT_32BIT_CHANNEL(13, REPEAT);
+  OUT_32BIT_CHANNEL(14, ONE_SHOT);
+  OUT_32BIT_CHANNEL(15, ONE_SHOT);
   @(posedge o_done_tick);
   
   //$finish;

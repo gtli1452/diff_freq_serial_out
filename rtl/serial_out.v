@@ -7,7 +7,9 @@ Release     : 12/16/2020 v1.0
 */
 
 module serial_out #(
-  parameter DATA_BIT     = 32
+  parameter       DATA_BIT  = 32,
+  parameter [7:0] LOW_FREQ  = 9,
+  parameter [7:0] HIGH_FREQ = 3
 ) (
   input                 clk,
   input                 rst_n,
@@ -26,12 +28,9 @@ localparam [1:0] S_IDLE     = 2'b00;
 localparam [1:0] S_ONE_SHOT = 2'b01;
 localparam [1:0] S_DONE     = 2'b10;
 
-localparam       IDLE     = 1'b0;
-localparam       ONE_SHOT = 1'b0;
-localparam       REPEAT   = 1'b1;
-
-localparam [7:0] LOW_FREQ  = 9;
-localparam [7:0] HIGH_FREQ = 3;
+localparam IDLE     = 1'b0;
+localparam ONE_SHOT = 1'b0;
+localparam REPEAT   = 1'b1;
 
 // Signal declaration
 reg [1:0]          state_reg,     state_next;
