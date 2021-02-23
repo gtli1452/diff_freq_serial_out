@@ -1,9 +1,10 @@
 /*
-Filename    : diff_freq_serial_out_tb.v
+Filename    : diff_freq_serial_out_test.v
 Compiler    : ModelSim 10.2c, Debussy 5.4 v9
 Description : ModelSim with debussy
 Author      : Tim.Li
-Release     : 12/16/2020 v1.0
+Revision    : 12/16/2020 v1.0
+              02/17/2021 v2.0
 */
 
 module diff_freq_serial_out_test (
@@ -25,8 +26,6 @@ module diff_freq_serial_out_test (
   output o_serial_out13, // PIN_G16
   output o_serial_out14, // PIN_H16
   output o_serial_out15, // PIN_J16
-  output o_bit_tick,     // PIN_R10
-  output o_done_tick,    // PIN_T8
   // UART
   input  i_rx,           // PIN_K12
   output o_tx,           // PIN_M12
@@ -99,8 +98,8 @@ diff_freq_serial_out #(
   .i_data         (rx_received_data),
   .i_rx_done_tick (o_rx_done_tick),
   .o_serial_out   (o_serial_out),
-  .o_bit_tick     (o_bit_tick),
-  .o_done_tick    (o_done_tick)
+  .o_bit_tick     (),
+  .o_done_tick    ()
 );
 
 UART #(
