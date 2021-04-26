@@ -75,11 +75,6 @@ initial begin
   #(SYS_PERIOD_NS/2);
 end
 
-initial begin
-  $fsdbDumpfile("diff_freq_serial_out.fsdb");
-  $fsdbDumpvars(0, diff_freq_serial_out_tb);
-end
-
 diff_freq_serial_out #(
   .DATA_BIT       (DATA_BIT),
   .PACK_NUM       (PACK_NUM),
