@@ -93,8 +93,8 @@ always @(posedge clk,  negedge rst_n) begin
       
       for (i = 0; i < OUTPUT_NUM; i = i + 1)
         begin
-          channel_output[i]      <= 0;
-          channel_freq[i]        <= 0;
+          channel_output     [i] <= 0;
+          channel_freq       [i] <= 0;
           channel_low_period [i] <= 0;
           channel_high_period[i] <= 0;
         end
