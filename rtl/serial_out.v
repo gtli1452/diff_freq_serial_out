@@ -171,7 +171,7 @@ always @(*) begin
           state_next = S_IDLE;
     end // case: S_DONE
 
-    default: state_reg = S_IDLE;
+    default: state_next = S_IDLE;
   endcase
 end
 
