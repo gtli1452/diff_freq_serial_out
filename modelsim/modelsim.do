@@ -39,11 +39,10 @@ vlog -work diff_freq_serial_out_lib +incdir+$tb_dir $tb_dir/decoder_tb.v
 # Loading the Test Bench
 # ------------------------------------------------------------------- #
 
-vsim -t ns -lib diff_freq_serial_out_lib diff_freq_serial_out_tb
-#vsim -pli novas.dll -novopt -t ns -lib diff_freq_serial_out_lib decoder_tb
+vsim -lib diff_freq_serial_out_lib diff_freq_serial_out_tb
 
-#wave zoom range 1540us 1548us
-#add wave -unsigned sim:/diff_freq_serial_out_tb/*
+add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/*
 
-run 50ms
-q
+run 7ms
+wave zoom range 0us 6ms
+#q
