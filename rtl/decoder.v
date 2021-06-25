@@ -10,19 +10,19 @@ module decoder #(
   parameter DATA_BIT = 32,
   parameter PACK_NUM = 11
 ) (
-  input                     clk,
-  input                     rst_n,
-  input      [7:0]          i_data,
-  input                     i_rx_done_tick,
-  output reg [DATA_BIT-1:0] o_output_pattern,
-  output reg [DATA_BIT-1:0] o_freq_pattern,
-  output reg [3:0]          o_sel_out,
-  output reg                o_start,
-  output reg                o_stop,
-  output reg                o_mode,
-  output reg [7:0]          o_slow_period,
-  output reg [7:0]          o_fast_period,
-  output reg                o_done_tick
+  input                     clk_i,
+  input                     rst_ni,
+  input      [7:0]          data_i,
+  input                     rx_done_tick_i,
+  output reg [DATA_BIT-1:0] output_pattern_o,
+  output reg [DATA_BIT-1:0] freq_pattern_o,
+  output reg [3:0]          sel_out_o,
+  output reg                start_o,
+  output reg                stop_o,
+  output reg                mode_o,
+  output reg [7:0]          slow_period_o,
+  output reg [7:0]          fast_period_o,
+  output reg                done_tick_o
 );
 
 // Define the states
@@ -40,8 +40,8 @@ reg [3:0]          pack_num_reg, pack_num_next;
 
 // Body
 // FSMD state & data register
-always @(posedge clk,  negedge rst_n) begin
-  if (~rst_n)
+always @(posedge clk_i,  negedge rst_ni) begin
+  if (~rst_ni)
     begin
       state_reg    <= S_IDLE;
       data_buf_reg <= 0;
@@ -60,30 +60,30 @@ always @(*) begin
   state_next       = state_reg; // default state : the same
   data_buf_next    = data_buf_reg;
   pack_num_next    = pack_num_reg;
-  o_done_tick      = 0;
-  o_output_pattern = 0;
-  o_freq_pattern   = 0;
-  o_start          = 0;
-  o_stop           = 0;
-  o_mode           = 0;
-  o_sel_out        = 0;
-  o_slow_period    = 0;
-  o_fast_period    = 0;
+  done_tick_o      = 0;
+  output_pattern_o = 0;
+  freq_pattern_o   = 0;
+  start_o          = 0;
+  stop_o           = 0;
+  mode_o           = 0;
+  sel_out_o        = 0;
+  slow_period_o    = 0;
+  fast_period_o    = 0;
 
   case (state_reg)
     S_IDLE: begin
       pack_num_next = 0;
-      if (i_rx_done_tick)
+      if (rx_done_tick_i)
         begin
           state_next = S_DATA;
-          data_buf_next[PACK_BIT-1:PACK_BIT-8] = i_data; // load rx data in MSB of data buffer
+          data_buf_next[PACK_BIT-1:PACK_BIT-8] = data_i; // load rx data in MSB of data buffer
         end
     end
 
     S_DATA: begin
-      if (i_rx_done_tick)
+      if (rx_done_tick_i)
         begin
-          data_buf_next = {i_data, data_buf_reg[PACK_BIT-1:8]}; // right-shift 8-bit
+          data_buf_next = {data_i, data_buf_reg[PACK_BIT-1:8]}; // right-shift 8-bit
           pack_num_next = pack_num_reg + 1'b1;
         end
       else if (pack_num_reg == PACK_NUM-1)
@@ -94,17 +94,17 @@ always @(*) begin
     end
 
     S_DONE: begin
-      o_done_tick      = 1;
+      done_tick_o      = 1;
       state_next       = S_IDLE;
       
-      o_output_pattern = data_buf_reg[DATA_BIT-1:0];
-      o_freq_pattern   = data_buf_reg[FREQ_INDEX-1:DATA_BIT];
-      o_start          = data_buf_reg[FREQ_INDEX];
-      o_stop           = data_buf_reg[FREQ_INDEX+1];
-      o_mode           = data_buf_reg[FREQ_INDEX+2];
-      o_sel_out        = data_buf_reg[FREQ_INDEX+7:FREQ_INDEX+4];
-      o_slow_period    = data_buf_reg[FREQ_INDEX+15:FREQ_INDEX+8];
-      o_fast_period    = data_buf_reg[FREQ_INDEX+23:FREQ_INDEX+16];
+      output_pattern_o = data_buf_reg[DATA_BIT-1:0];
+      freq_pattern_o   = data_buf_reg[FREQ_INDEX-1:DATA_BIT];
+      start_o          = data_buf_reg[FREQ_INDEX];
+      stop_o           = data_buf_reg[FREQ_INDEX+1];
+      mode_o           = data_buf_reg[FREQ_INDEX+2];
+      sel_out_o        = data_buf_reg[FREQ_INDEX+7:FREQ_INDEX+4];
+      slow_period_o    = data_buf_reg[FREQ_INDEX+15:FREQ_INDEX+8];
+      fast_period_o    = data_buf_reg[FREQ_INDEX+23:FREQ_INDEX+16];
     end
 
     default: state_next = S_IDLE;

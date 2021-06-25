@@ -21,19 +21,17 @@ module UART #(
   parameter DATA_BITS = 8,
   parameter STOP_BIT  = 1
 ) (
-  input                  clk,
-  input                  rst_n,
-
+  input                  clk_i,
+  input                  rst_ni,
   //rx interface
-  input                  i_rx,
-  output                 o_rx_done_tick,
-  output [DATA_BITS-1:0] o_rx_data,
-
+  input                  rx_i,
+  output                 rx_done_tick_o,
+  output [DATA_BITS-1:0] rx_data_o,
   //tx interface
-  input                  i_tx_start,
-  input [DATA_BITS-1:0]  i_tx_data,
-  output                 o_tx,
-  output                 o_tx_done_tick
+  input                  tx_start_i,
+  input [DATA_BITS-1:0]  tx_data_i,
+  output                 tx_o,
+  output                 tx_done_tick_o
 );
 
 // Parameter
@@ -45,37 +43,36 @@ localparam DIV_BIT   = $clog2(CLK_DIV);          // bits for TICK_DIVIDE, it mus
 wire tick;
 
 uart_rx #(
-  .DATA_BITS      (DATA_BITS),
-  .STOP_TICK      (STOP_TICK)
+  .DATA_BITS     (DATA_BITS),
+  .STOP_TICK     (STOP_TICK)
 ) uart_rx_unit (
-  .clk            (clk),
-  .rst_n          (rst_n),
-  .i_sample_tick  (tick),
-  .i_rx           (i_rx),
-  .o_rx_done_tick (o_rx_done_tick),
-  .o_rx_data      (o_rx_data)
+  .clk_i         (clk_i),
+  .rst_ni        (rst_ni),
+  .sample_tick_i (tick),
+  .rx_i          (rx_i),
+  .rx_done_tick_o(rx_done_tick_o),
+  .rx_data_o     (rx_data_o)
 );
 
 uart_tx #(
-  .DATA_BITS      (DATA_BITS),
-  .STOP_TICK      (STOP_TICK)
+  .DATA_BITS     (DATA_BITS),
+  .STOP_TICK     (STOP_TICK)
 ) uart_tx_unit (
-  .clk            (clk),
-  .rst_n          (rst_n),
-  .i_sample_tick  (tick),
-  .i_tx_start     (i_tx_start),
-  .i_tx_data      (i_tx_data),
-  .o_tx           (o_tx),
-  .o_tx_done_tick (o_tx_done_tick)
+  .clk_i         (clk_i),
+  .rst_ni        (rst_ni),
+  .sample_tick_i (tick),
+  .tx_start_i    (tx_start_i),
+  .tx_data_i     (tx_data_i),
+  .tx_o          (tx_o),
+  .tx_done_tick_o(tx_done_tick_o)
 );
 
 mod_m_counter #(
-  .MOD      (CLK_DIV),
-  .MOD_BIT  (DIV_BIT)
+  .MOD       (CLK_DIV),
+  .MOD_BIT   (DIV_BIT)
 ) baud_tick_unit (
-  .clk      (clk),
-  .rst_n    (rst_n),
-  .max_tick (tick),
-  .q        ()
+  .clk_i     (clk_i),
+  .rst_ni    (rst_ni),
+  .max_tick_o(tick)
 );
 endmodule

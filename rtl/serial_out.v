@@ -11,18 +11,18 @@ module serial_out #(
   parameter [7:0] LOW_FREQ  = 9,
   parameter [7:0] HIGH_FREQ = 3
 ) (
-  input                 clk,
-  input                 rst_n,
-  input                 i_start,
-  input                 i_stop,
-  input                 i_mode,        // one-shot, repeat
-  input  [DATA_BIT-1:0] i_output_pattern,
-  input  [DATA_BIT-1:0] i_freq_pattern,
-  input  [7:0]          i_slow_period,
-  input  [7:0]          i_fast_period,
-  output                o_serial_out,  // idle state is low
-  output                o_bit_tick,
-  output                o_done_tick
+  input                 clk_i,
+  input                 rst_ni,
+  input                 start_i,
+  input                 stop_i,
+  input                 mode_i,        // one-shot, repeat
+  input  [DATA_BIT-1:0] output_pattern_i,
+  input  [DATA_BIT-1:0] freq_pattern_i,
+  input  [7:0]          slow_period_i,
+  input  [7:0]          fast_period_i,
+  output                serial_out_o,  // idle state is low
+  output                bit_tick_o,
+  output                done_tick_o
 );
 
 // Define the states
@@ -49,8 +49,8 @@ reg                done_tick_reg, done_tick_next;
 
 // Body
 // FSMD state & data registers
-always @(posedge clk, negedge rst_n) begin
-  if (~rst_n)
+always @(posedge clk_i, negedge rst_ni) begin
+  if (~rst_ni)
     begin
       state_reg     <= S_IDLE;
       mode_reg      <= 0;
@@ -95,19 +95,19 @@ always @(*) begin
   done_tick_next   = 0;
 
   case (state_reg)
-    // S_IDLE: waiting for the i_start, output depends on i_mode
+    // S_IDLE: waiting for the start_i, output depends on mode_i
     S_IDLE: begin
       output_next = IDLE;
       // start output
-      if (i_start)
+      if (start_i)
         begin
           // load the input data
           state_next       = S_ONE_SHOT;
-          mode_next        = i_mode;  // load the mode, 0:one-shot, 1:repeat
-          data_buf_next    = i_output_pattern;
-          freq_buf_next    = i_freq_pattern;
-          slow_period_next = i_slow_period;
-          fast_period_next = i_fast_period;
+          mode_next        = mode_i;  // load the mode, 0:one-shot, 1:repeat
+          data_buf_next    = output_pattern_i;
+          freq_buf_next    = freq_pattern_i;
+          slow_period_next = slow_period_i;
+          fast_period_next = fast_period_i;
           data_bit_next    = 0;
           if (freq_buf_next[0])
             count_next = fast_period_next - 1'b1;
@@ -118,18 +118,18 @@ always @(*) begin
     // S_ONE_SHOT: serially output 32-bit data, it can change period per bit
     S_ONE_SHOT: begin
       output_next = data_buf_reg[data_bit_reg]; // transmit lsb first
-      if (i_stop)
+      if (stop_i)
         begin
           state_next = S_IDLE;
         end
-      else if (i_start)
+      else if (start_i)
         begin
           // load the input data
-          mode_next        = i_mode;           // load the mode, 0:one-shot, 1:repeat
-          data_buf_next    = i_output_pattern;
-          freq_buf_next    = i_freq_pattern;
-          slow_period_next = i_slow_period;
-          fast_period_next = i_fast_period;
+          mode_next        = mode_i;           // load the mode, 0:one-shot, 1:repeat
+          data_buf_next    = output_pattern_i;
+          freq_buf_next    = freq_pattern_i;
+          slow_period_next = slow_period_i;
+          fast_period_next = fast_period_i;
           data_bit_next    = 0;
           if (freq_buf_next[0])
             count_next = fast_period_next - 1'b1;
@@ -153,7 +153,7 @@ always @(*) begin
       else
         count_next = count_reg - 1'b1;
     end // case: S_ONE_SHOT
-    // S_DONE: assert o_done_tick for one clock
+    // S_DONE: assert done_tick_o for one clock
     S_DONE: begin
       output_next    = output_reg;
       done_tick_next = 1;
@@ -176,8 +176,8 @@ always @(*) begin
 end
 
 // Output
-assign o_serial_out = output_reg;
-assign o_bit_tick   = bit_tick_reg;
-assign o_done_tick  = done_tick_reg;
+assign serial_out_o = output_reg;
+assign bit_tick_o   = bit_tick_reg;
+assign done_tick_o  = done_tick_reg;
 
 endmodule
