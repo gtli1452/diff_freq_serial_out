@@ -52,13 +52,13 @@ wire [7:0]          decode_high_period;
 wire                decode_done_tick;
 
 // Signal to serial out entity
-reg [DATA_BIT-1:0] channel_output          [15:0];
-reg [DATA_BIT-1:0] channel_output_next     [15:0];
-reg [DATA_BIT-1:0] channel_freq            [15:0];
-reg [DATA_BIT-1:0] channel_freq_next       [15:0];
-reg [7:0]          channel_low_period      [15:0];
-reg [7:0]          channel_low_period_next [15:0];
-reg [7:0]          channel_high_period     [15:0];
+reg [DATA_BIT-1:0] channel_output[15:0];
+reg [DATA_BIT-1:0] channel_output_next[15:0];
+reg [DATA_BIT-1:0] channel_freq[15:0];
+reg [DATA_BIT-1:0] channel_freq_next[15:0];
+reg [7:0]          channel_low_period[15:0];
+reg [7:0]          channel_low_period_next[15:0];
+reg [7:0]          channel_high_period[15:0];
 reg [7:0]          channel_high_period_next[15:0];
 reg [15:0]         channel_start, channel_start_next;
 reg [15:0]         channel_stop,  channel_stop_next;
@@ -93,9 +93,9 @@ always @(posedge clk_i,  negedge rst_ni) begin
       
       for (i = 0; i < OUTPUT_NUM; i = i + 1)
         begin
-          channel_output     [i] <= 0;
-          channel_freq       [i] <= 0;
-          channel_low_period [i] <= 0;
+          channel_output[i]      <= 0;
+          channel_freq[i]        <= 0;
+          channel_low_period[i]  <= 0;
           channel_high_period[i] <= 0;
         end
     end
@@ -117,9 +117,9 @@ always @(posedge clk_i,  negedge rst_ni) begin
       
       for (i = 0; i < OUTPUT_NUM; i = i + 1)
         begin
-          channel_output     [i] <= channel_output_next     [i];
-          channel_freq       [i] <= channel_freq_next       [i];
-          channel_low_period [i] <= channel_low_period_next [i];
+          channel_output[i]      <= channel_output_next[i];
+          channel_freq[i]        <= channel_freq_next[i];
+          channel_low_period[i]  <= channel_low_period_next[i];
           channel_high_period[i] <= channel_high_period_next[i];
         end
     end
@@ -144,9 +144,9 @@ always @(*) begin
   
   for (i = 0; i < OUTPUT_NUM; i = i + 1)
     begin
-      channel_output_next     [i] = channel_output     [i];
-      channel_freq_next       [i] = channel_freq       [i];
-      channel_low_period_next [i] = channel_low_period [i];
+      channel_output_next[i]      = channel_output[i];
+      channel_freq_next[i]        = channel_freq[i];
+      channel_low_period_next[i]  = channel_low_period[i];
       channel_high_period_next[i] = channel_high_period[i];
     end
 
@@ -172,12 +172,12 @@ always @(*) begin
       else
         state_next  = S_IDLE;
 
-      channel_output_next     [sel_out_reg] = output_reg;
-      channel_freq_next       [sel_out_reg] = freq_reg;
-      channel_start_next      [sel_out_reg] = start_reg;
-      channel_stop_next       [sel_out_reg] = stop_reg;
-      channel_mode_next       [sel_out_reg] = mode_reg;
-      channel_low_period_next [sel_out_reg] = low_period_reg;
+      channel_output_next[sel_out_reg]      = output_reg;
+      channel_freq_next[sel_out_reg]        = freq_reg;
+      channel_start_next[sel_out_reg]       = start_reg;
+      channel_stop_next[sel_out_reg]        = stop_reg;
+      channel_mode_next[sel_out_reg]        = mode_reg;
+      channel_low_period_next[sel_out_reg]  = low_period_reg;
       channel_high_period_next[sel_out_reg] = high_period_reg;
     end
 
@@ -191,22 +191,22 @@ always @(*) begin
 end
 
 decoder #(
-  .DATA_BIT (DATA_BIT),
-  .PACK_NUM (PACK_NUM)
+  .DATA_BIT        (DATA_BIT),
+  .PACK_NUM        (PACK_NUM)
 ) decoder_dut (
-  .clk_i            (clk_i),
-  .rst_ni           (rst_ni),
-  .data_i           (data_i),
-  .rx_done_tick_i   (rx_done_tick_i),
-  .output_pattern_o (decode_output),
-  .freq_pattern_o   (decode_freq),
-  .sel_out_o        (decode_sel_out),
-  .start_o          (decode_start),
-  .stop_o           (decode_stop),
-  .mode_o           (decode_mode),
-  .slow_period_o    (decode_low_period),
-  .fast_period_o    (decode_high_period),
-  .done_tick_o      (decode_done_tick)
+  .clk_i           (clk_i),
+  .rst_ni          (rst_ni),
+  .data_i          (data_i),
+  .rx_done_tick_i  (rx_done_tick_i),
+  .output_pattern_o(decode_output),
+  .freq_pattern_o  (decode_freq),
+  .sel_out_o       (decode_sel_out),
+  .start_o         (decode_start),
+  .stop_o          (decode_stop),
+  .mode_o          (decode_mode),
+  .slow_period_o   (decode_low_period),
+  .fast_period_o   (decode_high_period),
+  .done_tick_o     (decode_done_tick)
 );
 
 // Use generate loop to create instances
@@ -214,22 +214,22 @@ genvar j;
 generate for (j = 0; j < OUTPUT_NUM; j = j + 1)
   begin: serial_out_entity
     serial_out #(
-    .DATA_BIT           (DATA_BIT),
-    .LOW_FREQ           (LOW_PERIOD_CLK),
-    .HIGH_FREQ          (HIGH_PERIOD_CLK)
+    .DATA_BIT          (DATA_BIT),
+    .LOW_FREQ          (LOW_PERIOD_CLK),
+    .HIGH_FREQ         (HIGH_PERIOD_CLK)
     ) channel (
-      .clk_i            (clk_i),
-      .rst_ni           (rst_ni),
-      .start_i          (start_tick         [j]),
-      .stop_i           (channel_stop       [j]),
-      .mode_i           (channel_mode       [j]), // one-shot, repeat
-      .output_pattern_i (channel_output     [j]),
-      .freq_pattern_i   (channel_freq       [j]),
-      .slow_period_i    (channel_low_period [j]),
-      .fast_period_i    (channel_high_period[j]),
-      .serial_out_o     (serial_out_o       [j]), // idle state is low
-      .bit_tick_o       (),
-      .done_tick_o      ()
+      .clk_i           (clk_i),
+      .rst_ni          (rst_ni),
+      .start_i         (start_tick[j]),
+      .stop_i          (channel_stop[j]),
+      .mode_i          (channel_mode[j]), // one-shot, repeat
+      .output_pattern_i(channel_output[j]),
+      .freq_pattern_i  (channel_freq[j]),
+      .slow_period_i   (channel_low_period[j]),
+      .fast_period_i   (channel_high_period[j]),
+      .serial_out_o    (serial_out_o[j]), // idle state is low
+      .bit_tick_o      (),
+      .done_tick_o     ()
     );
   end
 endgenerate
