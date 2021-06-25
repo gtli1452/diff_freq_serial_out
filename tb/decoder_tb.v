@@ -36,13 +36,13 @@ wire [DATA_SIZE-1:0] tb_received_data;
 wire tb_tx_done;
 
 // decoder signal
-  wire [DATA_BIT-1:0] o_output_pattern;
-  wire [DATA_BIT-1:0] o_freq_pattern;
-  wire [3:0]          o_sel_out;
-  wire                o_mode;
-  wire                o_stop;
-  wire                o_start;
-  wire                o_done_tick;
+  wire [DATA_BIT-1:0] output_pattern_o;
+  wire [DATA_BIT-1:0] freq_pattern_o;
+  wire [3:0]          sel_out_o;
+  wire                mode_o;
+  wire                stop_o;
+  wire                start_o;
+  wire                done_tick_o;
 
 // clock, T = 20ns
 always #(SYS_PERIOD_NS/2) clk = ~clk;
@@ -65,40 +65,38 @@ decoder #(
   .DATA_BIT(DATA_BIT),
   .PACK_NUM(PACK_NUM)
 ) decoder_dut (
-  .clk              (clk),
-  .rst_n            (rst_n),
-  .i_data           (tb_received_data),
-  .i_rx_done_tick   (tb_rx_done),
-  .o_output_pattern (o_output_pattern),
-  .o_freq_pattern   (o_freq_pattern),
-  .o_sel_out        (o_sel_out),
-  .o_mode           (o_mode),
-  .o_start          (o_start),
-  .o_stop           (o_stop),
-  .o_done_tick      (o_done_tick)
+  .clk_i            (clk),
+  .rst_ni           (rst_n),
+  .data_i           (tb_received_data),
+  .rx_done_tick_i   (tb_rx_done),
+  .output_pattern_o (output_pattern_o),
+  .freq_pattern_o   (freq_pattern_o),
+  .sel_out_o        (sel_out_o),
+  .mode_o           (mode_o),
+  .start_o          (start_o),
+  .stop_o           (stop_o),
+  .done_tick_o      (done_tick_o)
 );
 
 UART #(
-  .SYS_CLK        (SYS_CLK),
-  .BAUD_RATE      (BAUD_RATE),
-  .DATA_BITS      (DATA_SIZE),
-  .STOP_TICK      (STOP_TICK),
-  .CLK_DIV        (CLK_DIV),
-  .DIV_BIT        (DIV_BIT)
+  .SYS_CLK       (SYS_CLK),
+  .BAUD_RATE     (BAUD_RATE),
+  .DATA_BITS     (DATA_SIZE),
+  .STOP_TICK     (STOP_TICK),
+  .CLK_DIV       (CLK_DIV),
+  .DIV_BIT       (DIV_BIT)
 ) DUT_uart (
-  .clk            (clk),
-  .rst_n          (rst_n),
-
+  .clk_i         (clk),
+  .rst_ni        (rst_n),
   //rx interface
-  .i_rx           (tb_RxSerial),
-  .o_rx_done_tick (tb_rx_done),
-  .o_rx_data      (tb_received_data),
-
+  .rx_i          (tb_RxSerial),
+  .rx_done_tick_o(tb_rx_done),
+  .rx_data_o     (tb_received_data),
   //tx interface
-  .i_tx_start     (tb_rx_done),
-  .i_tx_data      (tb_received_data),
-  .o_tx           (tb_TxSerial),
-  .o_tx_done_tick (tb_tx_done)
+  .tx_start_i    (tb_rx_done),
+  .tx_data_i     (tb_received_data),
+  .tx_o          (tb_TxSerial),
+  .tx_done_tick_o(tb_tx_done)
 );
 
 reg [DATA_SIZE-1:0] test_byte = 0;
@@ -136,6 +134,5 @@ task UART_WRITE_BYTE;
     #(BIT_PERIOD);
   end
 endtask
-
 
 endmodule

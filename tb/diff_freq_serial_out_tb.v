@@ -13,7 +13,11 @@ module diff_freq_serial_out_tb ();
 // Parameter declaration
 // output & frequency pattern are all 32-bit, control_bits is 8-bit
 localparam DATA_BIT      = 32;
-localparam PACK_NUM      = (DATA_BIT/8)*2+3; // PACK_NUM = (out_pattern + freq_pattern + control_bits)/8 = (32+32+8)/8
+/*
+ * PACK_DATA = out_pattern + freq_pattern + control_byte + lo_freq_byte + hi_freq_freq
+ * pack_num = (32+32+8+8+8)/8 = 11
+ */
+localparam PACK_NUM      = (DATA_BIT/8)*2+3;
 
 localparam SYS_CLK       = 100_000_000;
 localparam SYS_PERIOD_NS = 10;     // 1/100Mhz = 10ns
@@ -35,25 +39,25 @@ reg clk   = 0;
 reg rst_n = 0;
 
 // diff_freq_serial_out signal
-wire o_bit_tick;
-wire o_done_tick;   // tick one clock when transmission is done
-wire [15:0] o_serial_out;
-wire o_serial_out0  = o_serial_out[0]; // idle state is low
-wire o_serial_out1  = o_serial_out[1];
-wire o_serial_out2  = o_serial_out[2];
-wire o_serial_out3  = o_serial_out[3];
-wire o_serial_out4  = o_serial_out[4];
-wire o_serial_out5  = o_serial_out[5];
-wire o_serial_out6  = o_serial_out[6];
-wire o_serial_out7  = o_serial_out[7];
-wire o_serial_out8  = o_serial_out[8];
-wire o_serial_out9  = o_serial_out[9];
-wire o_serial_out10 = o_serial_out[10];
-wire o_serial_out11 = o_serial_out[11];
-wire o_serial_out12 = o_serial_out[12];
-wire o_serial_out13 = o_serial_out[13];
-wire o_serial_out14 = o_serial_out[14];
-wire o_serial_out15 = o_serial_out[15];
+wire bit_tick_o;
+wire done_tick_o;   // tick one clock when transmission is done
+wire [15:0] serial_out_o;
+wire serial_out0_o  = serial_out_o[0]; // idle state is low
+wire serial_out1_o  = serial_out_o[1];
+wire serial_out2_o  = serial_out_o[2];
+wire serial_out3_o  = serial_out_o[3];
+wire serial_out4_o  = serial_out_o[4];
+wire serial_out5_o  = serial_out_o[5];
+wire serial_out6_o  = serial_out_o[6];
+wire serial_out7_o  = serial_out_o[7];
+wire serial_out8_o  = serial_out_o[8];
+wire serial_out9_o  = serial_out_o[9];
+wire serial_out10_o = serial_out_o[10];
+wire serial_out11_o = serial_out_o[11];
+wire serial_out12_o = serial_out_o[12];
+wire serial_out13_o = serial_out_o[13];
+wire serial_out14_o = serial_out_o[14];
+wire serial_out15_o = serial_out_o[15];
 
 // UART signal
 reg  tb_RxSerial;
@@ -86,34 +90,32 @@ diff_freq_serial_out #(
   .LOW_PERIOD_CLK (LOW_PERIOD_CLK),
   .HIGH_PERIOD_CLK(HIGH_PERIOD_CLK)
 ) serial_out_unit (
-  .clk            (clk),
-  .rst_n          (rst_n),
-  .i_data         (tb_received_data),
-  .i_rx_done_tick (tb_rx_done),
-  .o_serial_out   (o_serial_out), // idle state is low
-  .o_bit_tick     (o_bit_tick),
-  .o_done_tick    (o_done_tick)
+  .clk_i          (clk),
+  .rst_ni         (rst_n),
+  .data_i         (tb_received_data),
+  .rx_done_tick_i (tb_rx_done),
+  .serial_out_o   (serial_out_o), // idle state is low
+  .bit_tick_o     (bit_tick_o),
+  .done_tick_o    (done_tick_o)
 );
 
 UART #(
-  .SYS_CLK        (SYS_CLK),
-  .BAUD_RATE      (BAUD_RATE),
-  .DATA_BITS      (UART_DATA_BIT),
-  .STOP_BIT       (UART_STOP_BIT)
+  .SYS_CLK       (SYS_CLK),
+  .BAUD_RATE     (BAUD_RATE),
+  .DATA_BITS     (UART_DATA_BIT),
+  .STOP_BIT      (UART_STOP_BIT)
 ) DUT_uart (
-  .clk            (clk),
-  .rst_n          (rst_n),
-
+  .clk_i         (clk),
+  .rst_ni        (rst_n),
   //rx interface
-  .i_rx           (tb_RxSerial),
-  .o_rx_done_tick (tb_rx_done),
-  .o_rx_data      (tb_received_data),
-
+  .rx_i          (tb_RxSerial),
+  .rx_done_tick_o(tb_rx_done),
+  .rx_data_o     (tb_received_data),
   //tx interface
-  .i_tx_start     (tb_rx_done),
-  .i_tx_data      (tb_received_data),
-  .o_tx           (tb_TxSerial),
-  .o_tx_done_tick (tb_tx_done)
+  .tx_start_i    (tb_rx_done),
+  .tx_data_i     (tb_received_data),
+  .tx_o          (tb_TxSerial),
+  .tx_done_tick_o(tb_tx_done)
 );
 
 reg [7:0] slow_period = 8'h14;
@@ -137,7 +139,7 @@ initial begin
   OUT_32BIT_CHANNEL(13, REPEAT,   slow_period, fast_period);
   OUT_32BIT_CHANNEL(14, ONE_SHOT, slow_period, fast_period);
   OUT_32BIT_CHANNEL(15, ONE_SHOT, slow_period, fast_period);
-  @(posedge o_done_tick);
+  @(posedge done_tick_o);
   
   //$finish;
 end
