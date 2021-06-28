@@ -17,14 +17,16 @@ localparam DATA_BIT      = 32;
  * PACK_DATA = out_pattern + freq_pattern + control_byte + lo_freq_byte + hi_freq_freq
  * pack_num = (32+32+8+8+8)/8 = 11
  */
-localparam PACK_NUM      = (DATA_BIT/8)*2+3;
+localparam PACK_NUM      = (DATA_BIT/8)+1;
+localparam FREQ_NUM      = (DATA_BIT/8)+2;
+localparam OUTPUT_NUM    = 3;
 
 localparam SYS_CLK       = 100_000_000;
 localparam SYS_PERIOD_NS = 10;     // 1/100Mhz = 10ns
 localparam IDLE_LOW      = 1'b0;
 localparam IDLE_HIGH     = 1'b1;
-localparam ONE_SHOT      = 1'b0;
-localparam REPEAT        = 1'b1;
+localparam ONE_SHOT_MODE      = 1'b0;
+localparam REPEAT_MODE        = 1'b1;
 localparam [7:0] LOW_PERIOD_CLK  = 20;
 localparam [7:0] HIGH_PERIOD_CLK = 5;
 
@@ -41,23 +43,23 @@ reg rst_n = 0;
 // diff_freq_serial_out signal
 wire bit_tick_o;
 wire done_tick_o;   // tick one clock when transmission is done
-wire [15:0] serial_out_o;
+wire [OUTPUT_NUM-1:0] serial_out_o;
 wire serial_out0_o  = serial_out_o[0]; // idle state is low
 wire serial_out1_o  = serial_out_o[1];
 wire serial_out2_o  = serial_out_o[2];
-wire serial_out3_o  = serial_out_o[3];
-wire serial_out4_o  = serial_out_o[4];
-wire serial_out5_o  = serial_out_o[5];
-wire serial_out6_o  = serial_out_o[6];
-wire serial_out7_o  = serial_out_o[7];
-wire serial_out8_o  = serial_out_o[8];
-wire serial_out9_o  = serial_out_o[9];
-wire serial_out10_o = serial_out_o[10];
-wire serial_out11_o = serial_out_o[11];
-wire serial_out12_o = serial_out_o[12];
-wire serial_out13_o = serial_out_o[13];
-wire serial_out14_o = serial_out_o[14];
-wire serial_out15_o = serial_out_o[15];
+// wire serial_out3_o  = serial_out_o[3];
+// wire serial_out4_o  = serial_out_o[4];
+// wire serial_out5_o  = serial_out_o[5];
+// wire serial_out6_o  = serial_out_o[6];
+// wire serial_out7_o  = serial_out_o[7];
+// wire serial_out8_o  = serial_out_o[8];
+// wire serial_out9_o  = serial_out_o[9];
+// wire serial_out10_o = serial_out_o[10];
+// wire serial_out11_o = serial_out_o[11];
+// wire serial_out12_o = serial_out_o[12];
+// wire serial_out13_o = serial_out_o[13];
+// wire serial_out14_o = serial_out_o[14];
+// wire serial_out15_o = serial_out_o[15];
 
 // UART signal
 reg  tb_RxSerial;
@@ -87,6 +89,7 @@ end
 diff_freq_serial_out #(
   .DATA_BIT       (DATA_BIT),
   .PACK_NUM       (PACK_NUM),
+  .OUTPUT_NUM     (OUTPUT_NUM),
   .LOW_PERIOD_CLK (LOW_PERIOD_CLK),
   .HIGH_PERIOD_CLK(HIGH_PERIOD_CLK)
 ) serial_out_unit (
@@ -122,23 +125,27 @@ reg [7:0] slow_period = 8'h14;
 reg [7:0] fast_period = 8'h5;
 initial begin
   @(posedge rst_n);       // wait for finish reset
-  
-  OUT_32BIT_CHANNEL(0,  ONE_SHOT, slow_period, fast_period);
-  OUT_32BIT_CHANNEL(1,  REPEAT,   slow_period, fast_period);
-  OUT_32BIT_CHANNEL(2,  ONE_SHOT, slow_period, fast_period);
-  OUT_32BIT_CHANNEL(3,  ONE_SHOT, slow_period, fast_period);
-  OUT_32BIT_CHANNEL(4,  ONE_SHOT, slow_period, fast_period);
-  OUT_32BIT_CHANNEL(5,  REPEAT,   slow_period, fast_period);
-  OUT_32BIT_CHANNEL(6,  ONE_SHOT, slow_period, fast_period);
-  OUT_32BIT_CHANNEL(7,  ONE_SHOT, slow_period, fast_period);
-  OUT_32BIT_CHANNEL(8,  ONE_SHOT, slow_period, fast_period);
-  OUT_32BIT_CHANNEL(9,  REPEAT,   slow_period, fast_period);
-  OUT_32BIT_CHANNEL(10, ONE_SHOT, slow_period, fast_period);
-  OUT_32BIT_CHANNEL(11, ONE_SHOT, slow_period, fast_period);
-  OUT_32BIT_CHANNEL(12, ONE_SHOT, slow_period, fast_period);
-  OUT_32BIT_CHANNEL(13, REPEAT,   slow_period, fast_period);
-  OUT_32BIT_CHANNEL(14, ONE_SHOT, slow_period, fast_period);
-  OUT_32BIT_CHANNEL(15, ONE_SHOT, slow_period, fast_period);
+  // update frequency
+  UPDATE_FREQ(slow_period, fast_period);
+  UPDATE_DATA(0,  ONE_SHOT_MODE);
+  UPDATE_DATA(1,  ONE_SHOT_MODE);
+  UPDATE_DATA(2,  ONE_SHOT_MODE);
+  // OUT_32BIT_CHANNEL(0,  ONE_SHOT, slow_period, fast_period);
+  // OUT_32BIT_CHANNEL(1,  REPEAT,   slow_period, fast_period);
+  // OUT_32BIT_CHANNEL(2,  ONE_SHOT, slow_period, fast_period);
+  // OUT_32BIT_CHANNEL(3,  ONE_SHOT, slow_period, fast_period);
+  // OUT_32BIT_CHANNEL(4,  ONE_SHOT, slow_period, fast_period);
+  // OUT_32BIT_CHANNEL(5,  REPEAT,   slow_period, fast_period);
+  // OUT_32BIT_CHANNEL(6,  ONE_SHOT, slow_period, fast_period);
+  // OUT_32BIT_CHANNEL(7,  ONE_SHOT, slow_period, fast_period);
+  // OUT_32BIT_CHANNEL(8,  ONE_SHOT, slow_period, fast_period);
+  // OUT_32BIT_CHANNEL(9,  REPEAT,   slow_period, fast_period);
+  // OUT_32BIT_CHANNEL(10, ONE_SHOT, slow_period, fast_period);
+  // OUT_32BIT_CHANNEL(11, ONE_SHOT, slow_period, fast_period);
+  // OUT_32BIT_CHANNEL(12, ONE_SHOT, slow_period, fast_period);
+  // OUT_32BIT_CHANNEL(13, REPEAT,   slow_period, fast_period);
+  // OUT_32BIT_CHANNEL(14, ONE_SHOT, slow_period, fast_period);
+  // OUT_32BIT_CHANNEL(15, ONE_SHOT, slow_period, fast_period);
   @(posedge done_tick_o);
   
   //$finish;
@@ -172,17 +179,51 @@ task OUT_32BIT_CHANNEL;
   input [7:0] slow_period;
   input [7:0] fast_period;
   begin
+    // data pattern
     UART_WRITE_BYTE(8'h55);
     UART_WRITE_BYTE(8'h55);
     UART_WRITE_BYTE(8'h55);
     UART_WRITE_BYTE(8'h55);
-
+    // freq pattern
     UART_WRITE_BYTE(8'h00);
     UART_WRITE_BYTE(8'h00);
     UART_WRITE_BYTE(8'h00);
     UART_WRITE_BYTE(8'h00);
     
     UART_WRITE_BYTE({channel, 1'b0, mode, {2'h1}});
+    UART_WRITE_BYTE(slow_period);
+    UART_WRITE_BYTE(fast_period);
+  end
+endtask
+
+task UPDATE_DATA;
+  input [3:0] channel;
+  input reg mode;
+  begin
+    // comand
+    UART_WRITE_BYTE(8'h0B);
+    // data pattern
+    UART_WRITE_BYTE(8'h55);
+    UART_WRITE_BYTE(8'h55);
+    UART_WRITE_BYTE(8'h55);
+    UART_WRITE_BYTE(8'h55);
+    // control byte
+    UART_WRITE_BYTE({channel, 1'b0, mode, {2'h1}});
+  end
+endtask
+
+task UPDATE_FREQ;
+  input [7:0] slow_period;
+  input [7:0] fast_period;
+  begin
+    // command
+    UART_WRITE_BYTE(8'h0A);
+    // freq pattern
+    UART_WRITE_BYTE(8'h11);
+    UART_WRITE_BYTE(8'h22);
+    UART_WRITE_BYTE(8'h33);
+    UART_WRITE_BYTE(8'h44);
+
     UART_WRITE_BYTE(slow_period);
     UART_WRITE_BYTE(fast_period);
   end

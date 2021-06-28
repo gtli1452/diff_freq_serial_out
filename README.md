@@ -31,3 +31,4 @@
 # TODO
 
 1. Delete the respective freq_pattern and slow/fast period of each channel, and use the public freq_pattern and slow/fast period for all channels.
+2. Use a parameter file for all testbench.
