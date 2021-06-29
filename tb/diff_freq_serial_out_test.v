@@ -7,6 +7,8 @@ Revision    : 12/16/2020 v1.0
               02/17/2021 v2.0
 */
 
+`include "parameter.v"
+
 module diff_freq_serial_out_test (
   input  clk_i,          // PIN_P9
   input  rst_ni,         // PIN_G13
@@ -32,20 +34,6 @@ module diff_freq_serial_out_test (
   // PLL
   output pll_locked_o    // PIN_R16
 );
-
-// Serial output parameter 
-localparam       DATA_BIT            = 32;
-localparam       PACK_NUM            = (DATA_BIT/8)+1; // output_pattern (32-bit) + control_byte
-localparam       FREQ_NUM            = (DATA_BIT/8)+2; // freq_pattern (32-bit) + hi/lo_freq_byte
-localparam       OUTPUT_NUM          = 16;
-localparam [7:0] DEFAULT_SLOW_PERIOD = 20;
-localparam [7:0] DEFAULT_FAST_PERIOD = 5;
-
-// Uart parameter
-localparam SYS_CLK       = 100_000_000; // 100Mhz
-localparam BAUD_RATE     = 256000;
-localparam UART_DATA_BIT = 8;           // 8-bit data
-localparam UART_STOP_BIT = 1;           // 1-bit stop (16 ticks/bit)
 
 // Signal declaration
 reg         rst_n_reg, rst_n_next; // synchronous reset
@@ -90,11 +78,11 @@ pll pll_100M (
 );
 
 diff_freq_serial_out #(
-  .DATA_BIT      (DATA_BIT),
-  .PACK_NUM      (PACK_NUM),
-  .OUTPUT_NUM    (OUTPUT_NUM),
-  .SLOW_PERIOD   (DEFAULT_SLOW_PERIOD),
-  .FAST_PERIOD   (DEFAULT_FAST_PERIOD)
+  .DATA_BIT      (`DATA_BIT),
+  .PACK_NUM      (`PACK_NUM),
+  .OUTPUT_NUM    (`OUTPUT_NUM),
+  .SLOW_PERIOD   (`DEFAULT_SLOW_PERIOD),
+  .FAST_PERIOD   (`DEFAULT_FAST_PERIOD)
 ) DUT (
   .clk_i         (clk_pll),
   .rst_ni        (rst_n_reg),
@@ -106,10 +94,10 @@ diff_freq_serial_out #(
 );
 
 UART #(
-  .SYS_CLK       (SYS_CLK),
-  .BAUD_RATE     (BAUD_RATE),
-  .DATA_BITS     (UART_DATA_BIT),
-  .STOP_BIT      (UART_STOP_BIT)
+  .SYS_CLK       (`SYS_CLK),
+  .BAUD_RATE     (`BAUD_RATE),
+  .DATA_BITS     (`UART_DATA_BIT),
+  .STOP_BIT      (`UART_STOP_BIT)
 ) DUT_uart (
   .clk_i         (clk_pll),
   .rst_ni        (rst_n_reg),
