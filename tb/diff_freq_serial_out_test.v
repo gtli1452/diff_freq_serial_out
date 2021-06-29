@@ -34,12 +34,12 @@ module diff_freq_serial_out_test (
 );
 
 // Serial output parameter 
-localparam       DATA_BIT        = 32;
-localparam       PACK_NUM        = (DATA_BIT/8)+1; // output_pattern (32-bit) + control_byte
-localparam       FREQ_NUM        = (DATA_BIT/8)+2; // freq_pattern (32-bit) + hi/lo_freq_byte
-localparam       OUTPUT_NUM      = 16;
-localparam [7:0] LOW_PERIOD_CLK  = 20;
-localparam [7:0] HIGH_PERIOD_CLK = 5;
+localparam       DATA_BIT            = 32;
+localparam       PACK_NUM            = (DATA_BIT/8)+1; // output_pattern (32-bit) + control_byte
+localparam       FREQ_NUM            = (DATA_BIT/8)+2; // freq_pattern (32-bit) + hi/lo_freq_byte
+localparam       OUTPUT_NUM          = 16;
+localparam [7:0] DEFAULT_SLOW_PERIOD = 20;
+localparam [7:0] DEFAULT_FAST_PERIOD = 5;
 
 // Uart parameter
 localparam SYS_CLK       = 100_000_000; // 100Mhz
@@ -90,19 +90,19 @@ pll pll_100M (
 );
 
 diff_freq_serial_out #(
-  .DATA_BIT       (DATA_BIT),
-  .PACK_NUM       (PACK_NUM),
-  .OUTPUT_NUM     (OUTPUT_NUM),
-  .LOW_PERIOD_CLK (LOW_PERIOD_CLK),
-  .HIGH_PERIOD_CLK(HIGH_PERIOD_CLK)
+  .DATA_BIT      (DATA_BIT),
+  .PACK_NUM      (PACK_NUM),
+  .OUTPUT_NUM    (OUTPUT_NUM),
+  .SLOW_PERIOD   (DEFAULT_SLOW_PERIOD),
+  .FAST_PERIOD   (DEFAULT_FAST_PERIOD)
 ) DUT (
-  .clk_i          (clk_pll),
-  .rst_ni         (rst_n_reg),
-  .data_i         (rx_received_data),
-  .rx_done_tick_i (rx_done_tick),
-  .serial_out_o   (serial_out),
-  .bit_tick_o     (),
-  .done_tick_o    ()
+  .clk_i         (clk_pll),
+  .rst_ni        (rst_n_reg),
+  .data_i        (rx_received_data),
+  .rx_done_tick_i(rx_done_tick),
+  .serial_out_o  (serial_out),
+  .bit_tick_o    (),
+  .done_tick_o   ()
 );
 
 UART #(
