@@ -20,8 +20,6 @@ reg clk   = 0;
 reg rst_n = 0;
 
 // diff_freq_serial_out signal
-wire bit_tick_o;
-wire done_tick_o;   // tick one clock when transmission is done
 wire [`OUTPUT_NUM-1:0] serial_out_o;
 wire serial_out0_o  = serial_out_o[0]; // idle state is low
 wire serial_out1_o  = serial_out_o[1];
@@ -76,9 +74,7 @@ diff_freq_serial_out #(
   .rst_ni         (rst_n),
   .data_i         (tb_received_data),
   .rx_done_tick_i (tb_rx_done),
-  .serial_out_o   (serial_out_o), // idle state is low
-  .bit_tick_o     (bit_tick_o),
-  .done_tick_o    (done_tick_o)
+  .serial_out_o   (serial_out_o) // idle state is low
 );
 
 UART #(
@@ -122,7 +118,6 @@ initial begin
   UPDATE_DATA(13, ONE_SHOT_MODE);
   UPDATE_DATA(14, ONE_SHOT_MODE);
   UPDATE_DATA(15, ONE_SHOT_MODE);
-  @(posedge done_tick_o);
   
   //$finish;
 end
