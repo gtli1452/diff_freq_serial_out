@@ -7,9 +7,7 @@ Release     : 12/16/2020 v1.0
 */
 
 module serial_out #(
-  parameter       DATA_BIT  = 32,
-  parameter [7:0] LOW_FREQ  = 9,
-  parameter [7:0] HIGH_FREQ = 3
+  parameter DATA_BIT = 32
 ) (
   input                 clk_i,
   input                 rst_ni,

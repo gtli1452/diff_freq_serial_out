@@ -20,8 +20,8 @@ localparam       DATA_BIT        = 32;
 localparam       PACK_NUM        = (DATA_BIT/8)+1; // output_pattern (32-bit) + control_byte
 localparam       FREQ_NUM        = (DATA_BIT/8)+2; // freq_pattern (32-bit) + hi/lo_freq_byte
 localparam       OUTPUT_NUM      = 16;
-localparam [7:0] LOW_PERIOD_CLK  = 20;
-localparam [7:0] HIGH_PERIOD_CLK = 5;
+localparam [7:0] DEFAULT_SLOW_PERIOD = 20;
+localparam [7:0] DEFAULT_FAST_PERIOD = 5;
 
 // Uart parameter
 localparam BAUD_RATE        = 256000;
@@ -88,8 +88,8 @@ diff_freq_serial_out #(
   .DATA_BIT       (DATA_BIT),
   .PACK_NUM       (PACK_NUM),
   .OUTPUT_NUM     (OUTPUT_NUM),
-  .LOW_PERIOD_CLK (LOW_PERIOD_CLK),
-  .HIGH_PERIOD_CLK(HIGH_PERIOD_CLK)
+  .SLOW_PERIOD    (DEFAULT_SLOW_PERIOD),
+  .FAST_PERIOD    (DEFAULT_FAST_PERIOD)
 ) serial_out_unit (
   .clk_i          (clk),
   .rst_ni         (rst_n),
