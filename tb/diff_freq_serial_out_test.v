@@ -35,7 +35,9 @@ module diff_freq_serial_out_test (
 
 // Serial output parameter 
 localparam       DATA_BIT        = 32;
-localparam       PACK_NUM        = (DATA_BIT/8)*2+3; // byte_num of a pack = output_pattern (32-bit) + freq_pattern (32-bit) + control_byte + hi/lo_freq_byte
+localparam       PACK_NUM        = (DATA_BIT/8)+1; // output_pattern (32-bit) + control_byte
+localparam       FREQ_NUM        = (DATA_BIT/8)+2; // freq_pattern (32-bit) + hi/lo_freq_byte
+localparam       OUTPUT_NUM      = 16;
 localparam [7:0] LOW_PERIOD_CLK  = 20;
 localparam [7:0] HIGH_PERIOD_CLK = 5;
 
@@ -90,6 +92,7 @@ pll pll_100M (
 diff_freq_serial_out #(
   .DATA_BIT       (DATA_BIT),
   .PACK_NUM       (PACK_NUM),
+  .OUTPUT_NUM     (OUTPUT_NUM),
   .LOW_PERIOD_CLK (LOW_PERIOD_CLK),
   .HIGH_PERIOD_CLK(HIGH_PERIOD_CLK)
 ) DUT (
