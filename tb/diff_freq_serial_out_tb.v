@@ -7,28 +7,9 @@ Release     : 12/16/2020 v1.0
 */
 
 `timescale 1ns / 100ps
+`include "parameter.v"
 
 module diff_freq_serial_out_tb ();
-
-// system clock
-localparam SYS_CLK       = 100_000_000;
-localparam SYS_PERIOD_NS = 10;     // 1/100Mhz = 10ns
-
-// Parameter declaration
-// output & frequency pattern are all 32-bit, control_bits is 8-bit
-localparam       DATA_BIT        = 32;
-localparam       PACK_NUM        = (DATA_BIT/8)+1; // output_pattern (32-bit) + control_byte
-localparam       FREQ_NUM        = (DATA_BIT/8)+2; // freq_pattern (32-bit) + hi/lo_freq_byte
-localparam       OUTPUT_NUM      = 16;
-localparam [7:0] DEFAULT_SLOW_PERIOD = 20;
-localparam [7:0] DEFAULT_FAST_PERIOD = 5;
-
-// Uart parameter
-localparam BAUD_RATE        = 256000;
-localparam CLK_PER_UART_BIT = SYS_CLK/BAUD_RATE;
-localparam UART_BIT_PERIOD  = CLK_PER_UART_BIT * SYS_PERIOD_NS;
-localparam UART_DATA_BIT    = 8;
-localparam UART_STOP_BIT    = 1;
 
 // task parameter
 localparam ONE_SHOT_MODE = 1'b0;
@@ -41,7 +22,7 @@ reg rst_n = 0;
 // diff_freq_serial_out signal
 wire bit_tick_o;
 wire done_tick_o;   // tick one clock when transmission is done
-wire [OUTPUT_NUM-1:0] serial_out_o;
+wire [`OUTPUT_NUM-1:0] serial_out_o;
 wire serial_out0_o  = serial_out_o[0]; // idle state is low
 wire serial_out1_o  = serial_out_o[1];
 wire serial_out2_o  = serial_out_o[2];
@@ -72,7 +53,7 @@ wire [7:0] tb_received_data;
 wire [3:0] sel_out_reg = serial_out_unit.sel_out_reg;
 
 // system clock generator
-always #(SYS_PERIOD_NS/2) clk = ~clk;
+always #(`SYS_PERIOD_NS/2) clk = ~clk;
 
 initial begin
   #0;
@@ -81,15 +62,15 @@ initial begin
 
   #5;
   rst_n = 1'b1;
-  #(SYS_PERIOD_NS/2);
+  #(`SYS_PERIOD_NS/2);
 end
 
 diff_freq_serial_out #(
-  .DATA_BIT       (DATA_BIT),
-  .PACK_NUM       (PACK_NUM),
-  .OUTPUT_NUM     (OUTPUT_NUM),
-  .SLOW_PERIOD    (DEFAULT_SLOW_PERIOD),
-  .FAST_PERIOD    (DEFAULT_FAST_PERIOD)
+  .DATA_BIT       (`DATA_BIT),
+  .PACK_NUM       (`PACK_NUM),
+  .OUTPUT_NUM     (`OUTPUT_NUM),
+  .SLOW_PERIOD    (`DEFAULT_SLOW_PERIOD),
+  .FAST_PERIOD    (`DEFAULT_FAST_PERIOD)
 ) serial_out_unit (
   .clk_i          (clk),
   .rst_ni         (rst_n),
@@ -101,10 +82,10 @@ diff_freq_serial_out #(
 );
 
 UART #(
-  .SYS_CLK       (SYS_CLK),
-  .BAUD_RATE     (BAUD_RATE),
-  .DATA_BITS     (UART_DATA_BIT),
-  .STOP_BIT      (UART_STOP_BIT)
+  .SYS_CLK       (`SYS_CLK),
+  .BAUD_RATE     (`BAUD_RATE),
+  .DATA_BITS     (`UART_DATA_BIT),
+  .STOP_BIT      (`UART_STOP_BIT)
 ) DUT_uart (
   .clk_i         (clk),
   .rst_ni        (rst_n),
@@ -148,23 +129,23 @@ end
 
 //To check RX module
 task UART_WRITE_BYTE;
-  input [UART_DATA_BIT-1:0] WRITE_DATA;
+  input [`UART_DATA_BIT-1:0] WRITE_DATA;
   integer i;
   begin
     //Send Start Bit
     tb_RxSerial = 1'b0;
-    #(UART_BIT_PERIOD);
+    #(`UART_BIT_PERIOD);
 
     //Send Data Byte
-    for (i = 0; i < UART_DATA_BIT; i = i + 1)
+    for (i = 0; i < `UART_DATA_BIT; i = i + 1)
       begin
         tb_RxSerial = WRITE_DATA[i];
-        #(UART_BIT_PERIOD);
+        #(`UART_BIT_PERIOD);
       end
 
     //Send Stop Bit
     tb_RxSerial = 1'b1;
-    #(UART_BIT_PERIOD);
+    #(`UART_BIT_PERIOD);
   end
 endtask
 
@@ -172,7 +153,7 @@ task UPDATE_DATA;
   input [3:0] channel;
   input reg mode;
   begin
-    // comand
+    // command
     UART_WRITE_BYTE(8'h0B);
     // data pattern
     UART_WRITE_BYTE(8'h55);
