@@ -7,19 +7,17 @@ Release     : 12/16/2020 v1.0
 */
 
 module diff_freq_serial_out #(
-  parameter DATA_BIT        = 32,
-  parameter PACK_NUM        = 9,
-  parameter OUTPUT_NUM      = 16,
-  parameter SLOW_PERIOD     = 20,
-  parameter FAST_PERIOD     = 5
+  parameter       DATA_BIT    = 32,
+  parameter       PACK_NUM    = 9,
+  parameter       OUTPUT_NUM  = 16,
+  parameter [7:0] SLOW_PERIOD = 20,
+  parameter [7:0] FAST_PERIOD = 5
 ) (
   input                   clk_i,
   input                   rst_ni,
   input  [7:0]            data_i,
   input                   rx_done_tick_i,
-  output [OUTPUT_NUM-1:0] serial_out_o,
-  output                  bit_tick_o,
-  output                  done_tick_o
+  output [OUTPUT_NUM-1:0] serial_out_o
 );
 
 // Define the states

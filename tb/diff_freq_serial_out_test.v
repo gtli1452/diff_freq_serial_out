@@ -88,9 +88,7 @@ diff_freq_serial_out #(
   .rst_ni        (rst_n_reg),
   .data_i        (rx_received_data),
   .rx_done_tick_i(rx_done_tick),
-  .serial_out_o  (serial_out),
-  .bit_tick_o    (),
-  .done_tick_o   ()
+  .serial_out_o  (serial_out)
 );
 
 UART #(
