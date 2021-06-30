@@ -1,10 +1,9 @@
-/*
-Filename    : diff_freq_serial_out.v
-Simulation  : ModelSim 10.2c, Debussy 5.4 v9
-Description : Serially output 32-bit data by different frequency
-Author      : Tim.Li
-Release     : 12/16/2020 v1.0
-*/
+/* Filename : diff_freq_serial_out.v
+ * Simulator: ModelSim - Intel FPGA Edition vsim 2020.1
+ * Complier : Quartus Prime - Standard Edition 20.1.1
+ *
+ * Serially output 32-bit data by different frequency
+ */
 
 module diff_freq_serial_out #(
   parameter       DATA_BIT    = 32,

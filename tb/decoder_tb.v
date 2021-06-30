@@ -1,10 +1,9 @@
-/*
-Filename    : decoder_tb.v
-Compiler    : ModelSim 10.2c, Debussy 5.4 v9
-Description : ModelSim with debussy
-Author      : Tim.Li
-Release     : 12/23/2020 v1.0
-*/
+/* Filename : decoder_tb.v
+ * Simulator: ModelSim - Intel FPGA Edition vsim 2020.1
+ *
+ * Testbench of ap_decoder.
+ */
+
 `timescale 1ns / 100ps
 
 module decoder_tb ();
