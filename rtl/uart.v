@@ -1,19 +1,13 @@
-//////////////////////////////////////////////////////////////////////
-// Filename    : uart.v
-// Compiler    : ModelSim 10.2c, Debussy 5.4 v9
-// Author      : Tim.Li
-// Release     : 11/12/2020 v1.0 - first version
-//               11/20/2020 v2.0 - add FSM
-//               12/14/2020 v3.0 - modify from ref[1]
-// File Ref    :
-// 1. "FPGA prototyping by Verilog examples" by Pong P. Chu
-//////////////////////////////////////////////////////////////////////
-// Description :
-// This file contains the UART Module. This UART is able to
-// receive/transmit 8 bits of serial data, one start bit,
-// one stop bit, and no parity bit.
-//
-// s_tick is 16 times the baudrate
+/* Filename : uart.v
+ * Simulator: ModelSim - Intel FPGA Edition vsim 2020.1
+ * Complier : Quartus Prime - Standard Edition 20.1.1
+ *
+ * This file contains the UART Module. It is able to receive/transmit
+ * 8 bits of serial data, one start bit, one stop bit, and no parity bit.
+ *
+ * The source code is modified from:
+ * Pong P. Chu - FPGA Prototyping By Verilog Examples
+ */
 
 module UART #(
   parameter SYS_CLK   = 10_000_000, // 10Mhz

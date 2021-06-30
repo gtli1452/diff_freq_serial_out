@@ -1,20 +1,14 @@
-//////////////////////////////////////////////////////////////////////
-// Filename    : uart_rx.v
-// Compiler    : ModelSim 10.2c, Debussy 5.4 v9
-// Author      : Tim.Li
-// Release     : 11/12/2020 v1.0 - first version
-//               11/20/2020 v2.0 - add FSM
-//               12/14/2020 v3.0 - modify from ref[1]
-// File Ref    :
-// 1. "FPGA prototyping by Verilog examples" by Pong P. Chu
-//////////////////////////////////////////////////////////////////////
-// Description :
-// This file contains the UART Receiver. This receiver is able to
-// receive 8 bits of serial data, one start bit, one stop bit,
-// and no parity bit. When receive is completed rx_done_tick_o will be
-// driven high for one clock cycle.
-//
-// sample_tick_i is 16 times the baud rate
+/* Filename : uart_rx.v
+ * Simulator: ModelSim - Intel FPGA Edition vsim 2020.1
+ * Complier : Quartus Prime - Standard Edition 20.1.1
+ *
+ * This file contains the UART Receiver. It is able to receive 8 bits of
+ * serial data, one start bit, one stop bit, and no parity bit. When receive is
+ * complete rx_done_tick_o will be driven high for one clock cycle.
+ *
+ * The source code is modified from:
+ * Pong P. Chu - FPGA Prototyping By Verilog Examples
+ */
 
 module uart_rx #(
   parameter DATA_BITS = 8,

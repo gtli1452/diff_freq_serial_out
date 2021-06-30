@@ -1,11 +1,10 @@
-/*
-Filename    : unpack.v
-Simulation  : ModelSim 10.2c, Debussy 5.4 v9
-Description : decoder the uart received data
-Author      : Tim.Li
-Release     : 12/23/2020 v1.0
-*/
-
+/* Filename : decoder.v
+ * Simulator: ModelSim - Intel FPGA Edition vsim 2020.1
+ * Complier : Quartus Prime - Standard Edition 20.1.1
+ *
+ * Decoder the uart received data
+ */
+ 
 module decoder #(
   parameter DATA_BIT = 32,
   parameter PACK_NUM = 5,

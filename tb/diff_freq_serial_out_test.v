@@ -1,11 +1,8 @@
-/*
-Filename    : diff_freq_serial_out_test.v
-Compiler    : ModelSim 10.2c, Debussy 5.4 v9
-Description : ModelSim with debussy
-Author      : Tim.Li
-Revision    : 12/16/2020 v1.0
-              02/17/2021 v2.0
-*/
+/* Filename   : diff_freq_serial_out_test.v
+ * Simulator  : ModelSim - Intel FPGA Edition vsim 2020.1
+ * Complier   : Quartus Prime - Standard Edition 20.1.1
+ * Description: Top module of uart for Quartus Prime.
+ */
 
 `include "parameter.v"
 
