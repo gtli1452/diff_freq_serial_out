@@ -9,9 +9,10 @@ Release     : 12/16/2020 v1.0
 module diff_freq_serial_out_test (
   input  clk,           // PIN_P9
   input  rst_n,         // PIN_G13
-  output o_serial_out0, // PIN_T7
-  output o_serial_out1, // PIN_P8
-  output o_serial_out2, // PIN_R9
+  output o_serial_out0, // PIN_P4
+  output o_serial_out1, // PIN_R4
+  output o_serial_out2, // PIN_R6
+  output o_serial_out3, // PIN_T7
   output o_bit_tick,    // PIN_R10
   output o_done_tick,   // PIN_T8
   // UART
@@ -22,20 +23,26 @@ module diff_freq_serial_out_test (
 );
 
 // Serial output parameter 
-localparam DATA_BIT       = 32;
-localparam PACK_NUM       = (DATA_BIT/8)*2+1; // byte_num of a pack = output_pattern (32-bit) + freq_pattern (32-bit) + control_byte
+localparam DATA_BIT      = 32;
+localparam PACK_NUM      = (DATA_BIT/8)*2+1; // byte_num of a pack = output_pattern (32-bit) + freq_pattern (32-bit) + control_byte
 
 // Uart parameter
-localparam SYS_CLK        = 100_000_000; // 100Mhz
-localparam BAUD_RATE      = 19200;
-localparam UART_DATA_BIT  = 8;                      // 8-bit data
-localparam UART_STOP_BIT  = 1;                      // 1-bit stop (16 ticks/bit)
+localparam SYS_CLK       = 100_000_000; // 100Mhz
+localparam BAUD_RATE     = 256000;
+localparam UART_DATA_BIT = 8;           // 8-bit data
+localparam UART_STOP_BIT = 1;           // 1-bit stop (16 ticks/bit)
 
 // Signal declaration
-reg        rst_n_reg, rst_n_next; // synchronous reset
-wire       clk_pll;
-wire [7:0] rx_received_data;
-wire       o_rx_done_tick, o_tx_done_tick;
+reg         rst_n_reg, rst_n_next; // synchronous reset
+wire        clk_pll;
+wire [7:0]  rx_received_data;
+wire        o_rx_done_tick, o_tx_done_tick;
+wire [15:0] o_serial_out;
+
+assign o_serial_out0 = o_serial_out[0];
+assign o_serial_out1 = o_serial_out[1];
+assign o_serial_out2 = o_serial_out[2];
+assign o_serial_out3 = o_serial_out[3];
 
 // Data register
 always @(posedge clk) begin
@@ -63,9 +70,7 @@ diff_freq_serial_out #(
   .rst_n          (rst_n_reg),
   .i_data         (rx_received_data),
   .i_rx_done_tick (o_rx_done_tick),
-  .o_serial_out0  (o_serial_out0),
-  .o_serial_out1  (o_serial_out1),
-  .o_serial_out2  (o_serial_out2),
+  .o_serial_out   (o_serial_out),
   .o_bit_tick     (o_bit_tick),
   .o_done_tick    (o_done_tick)
 );
