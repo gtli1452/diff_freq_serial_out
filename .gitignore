@@ -28,6 +28,4 @@ vsim.dbg
 Debussy*/
 
 # ignore user define file
-uart*.v
 *.rc
-*_test.v
