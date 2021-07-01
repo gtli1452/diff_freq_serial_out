@@ -27,5 +27,5 @@ vsim.dbg
 # ignore Log directory of Debussy
 Debussy*/
 
-# ignore user define *.v
-uart*.v
+# ignore user define file
+*.rc
