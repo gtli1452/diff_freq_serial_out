@@ -1,32 +1,26 @@
-//////////////////////////////////////////////////////////////////////
-// Filename    : uart_tx.v
-// Compiler    : ModelSim 10.2c, Debussy 5.4 v9
-// Author      : Tim.Li
-// Release     : 11/12/2020 v1.0 - first version
-//               11/20/2020 v2.0 - add FSM
-//               12/14/2020 v3.0 - modify from ref[1]
-// File Ref    :
-// 1. "FPGA prototyping by Verilog examples" by Pong P. Chu
-//////////////////////////////////////////////////////////////////////
-// Description :
-// This file contains the UART Transmitter. This transmitter is able
-// to transmit 8 bits of serial data, one start bit, one stop bit,
-// and no parity bit. When transmit is complete o_tx_done_tick will be
-// driven high for one clock cycle.
-//
-// i_sample_tick is 16 times the baud rate
+/* Filename : uart_tx.v
+ * Simulator: ModelSim - Intel FPGA Edition vsim 2020.1
+ * Complier : Quartus Prime - Standard Edition 20.1.1
+ *
+ * This file contains the UART Transmitter. It is able to transmit 8 bits of
+ * serial data, one start bit, one stop bit, and no parity bit. When transmit is
+ * complete tx_done_tick_o will be driven high for one clock cycle.
+ *
+ * The source code is modified from:
+ * Pong P. Chu - FPGA Prototyping By Verilog Examples
+ */
 
 module uart_tx #(
   parameter DATA_BITS = 8,
   parameter STOP_TICK = 16
 ) (
-  input                 clk,
-  input                 rst_n,
-  input                 i_sample_tick,
-  input                 i_tx_start,
-  input [DATA_BITS-1:0] i_tx_data,
-  output                o_tx,
-  output reg            o_tx_done_tick
+  input                 clk_i,
+  input                 rst_ni,
+  input                 sample_tick_i,
+  input                 tx_start_i,
+  input [DATA_BITS-1:0] tx_data_i,
+  output                tx_o,
+  output reg            tx_done_tick_o
 );
 
 // Define the states
@@ -37,15 +31,15 @@ localparam [1:0]    S_STOP  = 2'b11;
 
 // Declare state reg
 reg [2:0]           state_reg, state_next;
-reg [3:0]           tick_count_reg, tick_count_next; // i_sample_tick counter
+reg [3:0]           tick_count_reg, tick_count_next; // sample_tick_i counter
 reg [2:0]           data_count_reg, data_count_next; // data bit counter
 reg [DATA_BITS-1:0] data_buf_reg, data_buf_next;     // data buf
 reg                 tx_reg, tx_next;
 
 // Body
 // FSMD state & data registers
-always @(posedge clk or negedge rst_n) begin
-  if (~rst_n)
+always @(posedge clk_i or negedge rst_ni) begin
+  if (~rst_ni)
     begin
       state_reg      <= S_IDLE;
       tick_count_reg <= 0;
@@ -70,24 +64,24 @@ always @(*) begin
   data_count_next = data_count_reg;
   data_buf_next   = data_buf_reg;
   tx_next         = tx_reg;
-  o_tx_done_tick  = 1'b0;
+  tx_done_tick_o  = 1'b0;
 
   case (state_reg)
-    // S_IDLE: waiting for the i_tx_start
+    // S_IDLE: waiting for the tx_start_i
     S_IDLE: begin
       tx_next = 1'b1; // idle state is high level
-      if (i_tx_start)
+      if (tx_start_i)
         begin
           state_next      = S_START;
           tick_count_next = 0;
-          data_buf_next   = i_tx_data;
+          data_buf_next   = tx_data_i;
         end
     end // case: S_IDLE
 
     // S_START: transmit the start bit
     S_START: begin
       tx_next = 1'b0;
-      if (i_sample_tick)
+      if (sample_tick_i)
         begin
           if (tick_count_reg == 15)
             begin
@@ -103,7 +97,7 @@ always @(*) begin
     // S_DATA: transmit the 8 data bits
     S_DATA: begin
       tx_next = data_buf_reg[0]; // transmit LSB first
-      if (i_sample_tick)
+      if (sample_tick_i)
       begin
         if (tick_count_reg == 15)
           begin
@@ -119,15 +113,15 @@ always @(*) begin
       end
     end // case: S_DATA
 
-    // S_STOP: transmit the stop bit, and assert o_tx_done_tick
+    // S_STOP: transmit the stop bit, and assert tx_done_tick_o
     S_STOP: begin
       tx_next = 1'b1;
-      if (i_sample_tick)
+      if (sample_tick_i)
         begin
           if (tick_count_reg == ((STOP_TICK - 1) / 2))
             begin
               state_next     = S_IDLE;
-              o_tx_done_tick = 1'b1;
+              tx_done_tick_o = 1'b1;
             end
           else
             tick_count_next = tick_count_reg + 1'b1;
@@ -139,6 +133,6 @@ always @(*) begin
 end
 
    // Output
-   assign o_tx = tx_reg;
+   assign tx_o = tx_reg;
 
 endmodule
