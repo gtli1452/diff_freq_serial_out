@@ -17,6 +17,7 @@ vmap diff_freq_serial_out_lib work
 # ------------------------------------------------------------------- #
 
 vlog -work diff_freq_serial_out_lib +incdir+$rtl_dir $rtl_dir/mod_m_counter.v
+vlog -work diff_freq_serial_out_lib +incdir+$rtl_dir $rtl_dir/serial_out.v
 vlog -work diff_freq_serial_out_lib +incdir+$rtl_dir $rtl_dir/diff_freq_serial_out.v
 
 # ------------------------------------------------------------------- #
@@ -38,5 +39,5 @@ vsim -pli novas.dll -novopt -t ns -lib diff_freq_serial_out_lib diff_freq_serial
 #wave zoom range 0ns 20us
 add wave -unsigned sim:/diff_freq_serial_out_tb/*
 
-run 1ms
+run 10ms
 q
