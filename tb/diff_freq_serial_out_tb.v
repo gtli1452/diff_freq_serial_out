@@ -9,8 +9,9 @@ Release     : 12/16/2020 v1.0
 module diff_freq_serial_out_tb ();
 
 // Parameter declaration
+// output & frequency pattern are all 32-bit, control_bits is 8-bit
 localparam DATA_BIT      = 32;
-localparam PACK_NUM      = 9;
+localparam PACK_NUM      = 9; // PACK_NUM = (out_pattern + freq_pattern + control_bits)/8 = (32+32+8)/8
 
 localparam SYS_PERIOD_NS = 100;     // 1/10Mhz = 100ns
 localparam IDLE_LOW      = 1'b0;
@@ -36,8 +37,9 @@ reg rst_n = 0;
 
 // diff_freq_serial_out signal
 wire o_bit_tick;
-wire o_serial_out; // idle state is low
-wire o_done_tick;  // tick one clock when transmission is done
+wire o_done_tick;   // tick one clock when transmission is done
+wire o_serial_out0; // idle state is low
+wire o_serial_out1; // idle state is low
 
 // UART signal
 reg  tb_RxSerial;
@@ -74,7 +76,8 @@ diff_freq_serial_out #(
   .rst_n          (rst_n),
   .i_data         (tb_received_data),
   .i_rx_done_tick (tb_rx_done),
-  .o_serial_out   (o_serial_out), // idle state is low
+  .o_serial_out0  (o_serial_out0), // idle state is low
+  .o_serial_out1  (o_serial_out1),
   .o_bit_tick     (o_bit_tick),
   .o_done_tick    (o_done_tick)
 );
@@ -104,21 +107,10 @@ UART #(
 
 initial begin
   @(posedge rst_n);       // wait for finish reset
-  UART_WRITE_BYTE(8'hFF);
-  UART_WRITE_BYTE(8'h00);
-  UART_WRITE_BYTE(8'hFF);
-  UART_WRITE_BYTE(8'h55);
   
-  UART_WRITE_BYTE(8'h00);
-  UART_WRITE_BYTE(8'hFF);
-  UART_WRITE_BYTE(8'h00);
-  UART_WRITE_BYTE(8'hFF);
-  
-  // [7 | 6  5  4  3 |  2  |   1  |   0  ]
-  // [x |   OUT_No.  | mode| STOP | START]
-  UART_WRITE_BYTE(8'h01); // ch0, mode=one-shot, stop=1, start=1
-  
+  OUT_32BIT_TWO_CHANNEL();
   @(posedge o_done_tick);
+  
   //$finish;
 end
 
@@ -143,4 +135,33 @@ task UART_WRITE_BYTE;
     #(BIT_PERIOD);
   end
 endtask
+
+task OUT_32BIT_TWO_CHANNEL;
+  begin
+    UART_WRITE_BYTE(8'hff);
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'hff);
+    UART_WRITE_BYTE(8'h00);
+
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h00);
+    
+    UART_WRITE_BYTE(8'h01);
+    
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h55);
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h55);
+
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h00);
+    UART_WRITE_BYTE(8'h00);
+    
+    UART_WRITE_BYTE(8'h11);
+  end
+endtask
+
 endmodule
