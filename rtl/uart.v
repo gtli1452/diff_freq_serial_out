@@ -19,9 +19,7 @@ module UART #(
   parameter SYS_CLK   = 10_000_000, // 10Mhz
   parameter BAUD_RATE = 9600,
   parameter DATA_BITS = 8,
-  parameter STOP_TICK = 16,
-  parameter CLK_DIV   = 65,        // 10MHz/(16 x baud rate)
-  parameter DIV_BIT   = 7          // 2^7=128
+  parameter STOP_BIT  = 1
 ) (
   input                  clk,
   input                  rst_n,
@@ -37,6 +35,11 @@ module UART #(
   output                 o_tx,
   output                 o_tx_done_tick
 );
+
+// Parameter
+localparam STOP_TICK = STOP_BIT * 16;
+localparam CLK_DIV   = SYS_CLK / (16*BAUD_RATE); // SYS_CLK/(16*BAUD_RATE)
+localparam DIV_BIT   = $clog2(CLK_DIV);          // bits for TICK_DIVIDE, it must be >= log2(TICK_DIVIDE)
 
 // Signal declaration
 wire tick;

@@ -16,6 +16,7 @@ module diff_freq_serial_out #(
   input        i_rx_done_tick,
   output       o_serial_out0,
   output       o_serial_out1,
+  output       o_serial_out2,
   output       o_bit_tick,
   output       o_done_tick
 );
@@ -30,8 +31,10 @@ wire                o_decode_mode;
 wire                decoder_done_tick;
 
 // Serial out signal
-reg [DATA_BIT-1:0] output_pattern [15:0];
-reg [DATA_BIT-1:0] freq_pattern   [15:0];
+reg [DATA_BIT-1:0] output_pattern      [15:0];
+reg [DATA_BIT-1:0] output_pattern_next [15:0];
+reg [DATA_BIT-1:0] freq_pattern        [15:0];
+reg [DATA_BIT-1:0] freq_pattern_next   [15:0];
 wire [15:0]        start_pattern;
 wire [15:0]        stop_pattern;
 wire [15:0]        mode_pattern;
@@ -66,29 +69,97 @@ assign mode_pattern  = mode_buf_next & {16{update_done_tick}};
 always @(posedge clk,  negedge rst_n) begin
   if (~rst_n)
     begin
-      state_reg   <= S_IDLE;
-      output_reg  <= 0;
-      freq_reg    <= 0;
-      sel_out_reg <= 0;
-      start_reg   <= 0;
-      stop_reg    <= 0;
-      mode_reg    <= 0;
+      state_reg     <= S_IDLE;
+      output_reg    <= 0;
+      freq_reg      <= 0;
+      sel_out_reg   <= 0;
+      start_reg     <= 0;
+      stop_reg      <= 0;
+      mode_reg      <= 0;
       start_buf_reg <= 0;
       stop_buf_reg  <= 0;
       mode_buf_reg  <= 0;
+      // output pattern 
+      output_pattern[0]  <= 0;
+      output_pattern[1]  <= 0;
+      output_pattern[2]  <= 0;
+      output_pattern[3]  <= 0;
+      output_pattern[4]  <= 0;
+      output_pattern[5]  <= 0;
+      output_pattern[6]  <= 0;
+      output_pattern[7]  <= 0;
+      output_pattern[8]  <= 0;
+      output_pattern[9]  <= 0;
+      output_pattern[10] <= 0;
+      output_pattern[11] <= 0;
+      output_pattern[12] <= 0;
+      output_pattern[13] <= 0;
+      output_pattern[14] <= 0;
+      output_pattern[15] <= 0;
+      // freq pattern
+      freq_pattern[0]    <= 0;
+      freq_pattern[1]    <= 0;
+      freq_pattern[2]    <= 0;
+      freq_pattern[3]    <= 0;
+      freq_pattern[4]    <= 0;
+      freq_pattern[5]    <= 0;
+      freq_pattern[6]    <= 0;
+      freq_pattern[7]    <= 0;
+      freq_pattern[8]    <= 0;
+      freq_pattern[9]    <= 0;
+      freq_pattern[10]   <= 0;
+      freq_pattern[11]   <= 0;
+      freq_pattern[12]   <= 0;
+      freq_pattern[13]   <= 0;
+      freq_pattern[14]   <= 0;
+      freq_pattern[15]   <= 0;
     end
   else
     begin
-      state_reg   <= state_next;
-      output_reg  <= output_next;
-      freq_reg    <= freq_next;
-      sel_out_reg <= sel_out_next;
-      start_reg   <= start_next;
-      stop_reg    <= stop_next;
-      mode_reg    <= mode_next;
+      state_reg     <= state_next;
+      output_reg    <= output_next;
+      freq_reg      <= freq_next;
+      sel_out_reg   <= sel_out_next;
+      start_reg     <= start_next;
+      stop_reg      <= stop_next;
+      mode_reg      <= mode_next;
       start_buf_reg <= start_buf_next;
       stop_buf_reg  <= stop_buf_next;
       mode_buf_reg  <= mode_buf_next;
+      // output pattern
+      output_pattern[0]  <= output_pattern_next[0];
+      output_pattern[1]  <= output_pattern_next[1];
+      output_pattern[2]  <= output_pattern_next[2];
+      output_pattern[3]  <= output_pattern_next[3];
+      output_pattern[4]  <= output_pattern_next[4];
+      output_pattern[5]  <= output_pattern_next[5];
+      output_pattern[6]  <= output_pattern_next[6];
+      output_pattern[7]  <= output_pattern_next[7];
+      output_pattern[8]  <= output_pattern_next[8];
+      output_pattern[9]  <= output_pattern_next[9];
+      output_pattern[10] <= output_pattern_next[10];
+      output_pattern[11] <= output_pattern_next[11];
+      output_pattern[12] <= output_pattern_next[12];
+      output_pattern[13] <= output_pattern_next[13];
+      output_pattern[14] <= output_pattern_next[14];
+      output_pattern[15] <= output_pattern_next[15];
+      // freq pattern
+      freq_pattern[0]    <= freq_pattern_next[0];
+      freq_pattern[1]    <= freq_pattern_next[1];
+      freq_pattern[2]    <= freq_pattern_next[2];
+      freq_pattern[3]    <= freq_pattern_next[3];
+      freq_pattern[4]    <= freq_pattern_next[4];
+      freq_pattern[5]    <= freq_pattern_next[5];
+      freq_pattern[6]    <= freq_pattern_next[6];
+      freq_pattern[7]    <= freq_pattern_next[7];
+      freq_pattern[8]    <= freq_pattern_next[8];
+      freq_pattern[9]    <= freq_pattern_next[9];
+      freq_pattern[10]   <= freq_pattern_next[10];
+      freq_pattern[11]   <= freq_pattern_next[11];
+      freq_pattern[12]   <= freq_pattern_next[12];
+      freq_pattern[13]   <= freq_pattern_next[13];
+      freq_pattern[14]   <= freq_pattern_next[14];
+      freq_pattern[15]   <= freq_pattern_next[15];
     end
 end
 
@@ -105,6 +176,41 @@ always @(*) begin
   stop_buf_next    = stop_buf_reg;
   mode_buf_next    = mode_buf_reg;
   update_done_tick = 0;
+  // output pattern
+  output_pattern_next[0]  = output_pattern[0];
+  output_pattern_next[1]  = output_pattern[1];
+  output_pattern_next[2]  = output_pattern[2];
+  output_pattern_next[3]  = output_pattern[3];
+  output_pattern_next[4]  = output_pattern[4];
+  output_pattern_next[5]  = output_pattern[5];
+  output_pattern_next[6]  = output_pattern[6];
+  output_pattern_next[7]  = output_pattern[7];
+  output_pattern_next[8]  = output_pattern[8];
+  output_pattern_next[9]  = output_pattern[9];
+  output_pattern_next[10] = output_pattern[10];
+  output_pattern_next[11] = output_pattern[11];
+  output_pattern_next[12] = output_pattern[12];
+  output_pattern_next[13] = output_pattern[13];
+  output_pattern_next[14] = output_pattern[14];
+  output_pattern_next[15] = output_pattern[15];
+  // freq pattern
+  freq_pattern_next[0]    = freq_pattern[0];
+  freq_pattern_next[1]    = freq_pattern[1];
+  freq_pattern_next[2]    = freq_pattern[2];
+  freq_pattern_next[3]    = freq_pattern[3];
+  freq_pattern_next[4]    = freq_pattern[4];
+  freq_pattern_next[5]    = freq_pattern[5];
+  freq_pattern_next[6]    = freq_pattern[6];
+  freq_pattern_next[7]    = freq_pattern[7];
+  freq_pattern_next[8]    = freq_pattern[8];
+  freq_pattern_next[9]    = freq_pattern[9];
+  freq_pattern_next[10]   = freq_pattern[10];
+  freq_pattern_next[11]   = freq_pattern[11];
+  freq_pattern_next[12]   = freq_pattern[12];
+  freq_pattern_next[13]   = freq_pattern[13];
+  freq_pattern_next[14]   = freq_pattern[14];
+  freq_pattern_next[15]   = freq_pattern[15];
+
   case (state_reg)
     S_IDLE: begin
       if (decoder_done_tick)
@@ -122,24 +228,33 @@ always @(*) begin
     S_UPDATE: begin
       case (sel_out_reg)
         4'd0: begin
-          output_pattern[0] = output_reg;
-          freq_pattern  [0] = freq_reg;
-          start_buf_next[0] = start_reg;
-          stop_buf_next [0] = stop_reg;
-          mode_buf_next [0] = mode_reg;
-          state_next        = S_IDLE;
+          output_pattern_next[0] = output_reg;
+          freq_pattern_next  [0] = freq_reg;
+          start_buf_next     [0] = start_reg;
+          stop_buf_next      [0] = stop_reg;
+          mode_buf_next      [0] = mode_reg;
+          state_next             = S_IDLE;
         end
 
         4'd1: begin
-          output_pattern[1] = output_reg;
-          freq_pattern  [1] = freq_reg;
-          start_buf_next[1] = start_reg;
-          stop_buf_next [1] = stop_reg;
-          mode_buf_next [1] = mode_reg;
-          state_next        = S_DONE;
+          output_pattern_next[1] = output_reg;
+          freq_pattern_next  [1] = freq_reg;
+          start_buf_next     [1] = start_reg;
+          stop_buf_next      [1] = stop_reg;
+          mode_buf_next      [1] = mode_reg;
+          state_next             = S_IDLE;
         end
 
-        default: state_next = S_DONE;
+        4'd2: begin
+          output_pattern_next[2] = output_reg;
+          freq_pattern_next  [2] = freq_reg;
+          start_buf_next     [2] = start_reg;
+          stop_buf_next      [2] = stop_reg;
+          mode_buf_next      [2] = mode_reg;
+          state_next             = S_DONE;
+        end
+
+        default: state_next = S_IDLE;
       endcase
     end
 
@@ -171,7 +286,7 @@ decoder #(
 
 serial_out #(
   .DATA_BIT     (DATA_BIT)
-) serial_out1 (
+) serial_out0 (
   .clk              (clk),
   .rst_n            (rst_n),
   .i_start          (start_pattern [0]),
@@ -186,7 +301,7 @@ serial_out #(
 
 serial_out #(
   .DATA_BIT     (DATA_BIT)
-) serial_out2 (
+) serial_out1 (
   .clk              (clk),
   .rst_n            (rst_n),
   .i_start          (start_pattern [1]),
@@ -195,6 +310,21 @@ serial_out #(
   .i_output_pattern (output_pattern[1]),
   .i_freq_pattern   (freq_pattern  [1]),
   .o_serial_out     (o_serial_out1),     // idle state is low
+  .o_bit_tick       (),
+  .o_done_tick      ()
+);
+
+serial_out #(
+  .DATA_BIT     (DATA_BIT)
+) serial_out2 (
+  .clk              (clk),
+  .rst_n            (rst_n),
+  .i_start          (start_pattern [2]),
+  .i_stop           (stop_pattern  [2]),
+  .i_mode           (mode_pattern  [2]), // one-shot, repeat
+  .i_output_pattern (output_pattern[2]),
+  .i_freq_pattern   (freq_pattern  [2]),
+  .o_serial_out     (o_serial_out2),     // idle state is low
   .o_bit_tick       (),
   .o_done_tick      ()
 );
