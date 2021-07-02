@@ -1,4 +1,4 @@
-/* Filename    : parameter.v
+/* Filename    : parameter.vh
  * Simulator   : ModelSim - Intel FPGA Edition vsim 2020.1
  * Complier    : Quartus Prime - Standard Edition 20.1.1
  * Description : Parameter for testbench and top entity

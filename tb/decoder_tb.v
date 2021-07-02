@@ -5,7 +5,7 @@
  */
 
 `timescale 1ns / 100ps
-`include "parameter.v"
+`include "parameter.vh"
 
 module decoder_tb ();
 

@@ -5,7 +5,7 @@
  */
 
 `timescale 1ns / 100ps
-`include "parameter.v"
+`include "parameter.vh"
 
 module diff_freq_serial_out_tb ();
 

@@ -4,7 +4,7 @@
  * Description: Top module of uart for Quartus Prime.
  */
 
-`include "parameter.v"
+`include "parameter.vh"
 
 module diff_freq_serial_out_test (
   input  clk_i,          // PIN_P9
