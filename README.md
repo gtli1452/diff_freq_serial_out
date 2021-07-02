@@ -7,7 +7,7 @@
 * output the LSB first.
 * idle low or idle high
 * a data pattern whose bit amount can be set from 1 to 256 bits.
-* a 32-bit frequency pattern to determine the corresponding data bit rate.
+* a 256-bit frequency pattern to determine the corresponding data bit rate.
 * an 8-bit parameter to set the bit amount of data pattern.
 * an 8-bit parameter to set the slow bit rate.
 * an 8-bit parameter to set the fast bit rate.
