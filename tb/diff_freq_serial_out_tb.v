@@ -96,10 +96,12 @@ UART #(
 
 reg [7:0] slow_period = 8'h14;
 reg [7:0] fast_period = 8'h5;
+reg [31:0] freq_pattern = 32'h5555_5555;
 initial begin
   @(posedge rst_n);       // wait for finish reset
   // update frequency
-  UPDATE_FREQ(slow_period, fast_period);
+  UPDATE_FREQ(freq_pattern);
+  UPDATE_PERIOD(slow_period, fast_period);
   UPDATE_DATA(0,  ONE_SHOT_MODE);
   UPDATE_DATA(1,  ONE_SHOT_MODE);
   UPDATE_DATA(2,  ONE_SHOT_MODE);
@@ -159,17 +161,26 @@ task UPDATE_DATA;
 endtask
 
 task UPDATE_FREQ;
-  input [7:0] slow_period;
-  input [7:0] fast_period;
+  input [31:0] freq_pattern;
+  integer i;
   begin
     // command
     UART_WRITE_BYTE(`CMD_FREQ);
     // freq pattern
-    UART_WRITE_BYTE(8'h11);
-    UART_WRITE_BYTE(8'h22);
-    UART_WRITE_BYTE(8'h33);
-    UART_WRITE_BYTE(8'h44);
+    for (i = 0; i < 4; i = i + 1)
+      begin
+        UART_WRITE_BYTE(freq_pattern[7:0]); // transmit LSB first
+        freq_pattern = freq_pattern[31:8];  // right-shift 8-bit
+      end
+  end
+endtask
 
+task UPDATE_PERIOD;
+  input [7:0] slow_period;
+  input [7:0] fast_period;
+  begin
+    // command
+    UART_WRITE_BYTE(`CMD_PERIOD);
     UART_WRITE_BYTE(slow_period);
     UART_WRITE_BYTE(fast_period);
   end

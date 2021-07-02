@@ -5,7 +5,7 @@
  * Serially output 32-bit data by different frequency
  */
 
-`include "../tb/parameter.v"
+`include "user_cmd.vh"
 
 module diff_freq_serial_out #(
   parameter       DATA_BIT    = 32,
@@ -139,13 +139,7 @@ always @(*) begin
     S_IDLE: begin
       if (decode_done_tick)
         begin
-          if (decode_cmd == `CMD_FREQ)
-            begin
-              freq_next        = decode_freq;
-              slow_period_next = decode_low_period;
-              fast_period_next = decode_high_period;
-            end
-          else if (decode_cmd == `CMD_DATA)
+          if (decode_cmd == `CMD_DATA)
             begin
               output_next  = decode_output;
               sel_out_next = decode_sel_out;
@@ -153,6 +147,15 @@ always @(*) begin
               stop_next    = decode_stop;
               mode_next    = decode_mode;
               state_next   = S_UPDATE;
+            end
+          else if (decode_cmd == `CMD_FREQ)
+            begin
+              freq_next = decode_freq;
+            end
+          else if (decode_cmd == `CMD_PERIOD)
+            begin
+              slow_period_next = decode_low_period;
+              fast_period_next = decode_high_period;
             end
         end
     end
