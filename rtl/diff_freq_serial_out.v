@@ -5,6 +5,8 @@
  * Serially output 32-bit data by different frequency
  */
 
+`include "../tb/parameter.v"
+
 module diff_freq_serial_out #(
   parameter       DATA_BIT    = 32,
   parameter       PACK_NUM    = 9,
@@ -24,9 +26,6 @@ localparam [1:0] S_IDLE   = 2'b00;
 localparam [1:0] S_UPDATE = 2'b01;
 localparam [1:0] S_DONE   = 2'b10;
 
-localparam [7:0] CMD_FREQ = 8'h0A;
-localparam [7:0] CMD_DATA = 8'h0B;
-
 // Signal declaration
 // to load the decoder output
 reg [1:0]          state_reg,   state_next;
@@ -36,7 +35,7 @@ reg [3:0]          sel_out_reg, sel_out_next;
 reg                start_reg,   start_next;
 reg                stop_reg,    stop_next;
 reg                mode_reg,    mode_next;
-reg [7:0]          slow_period_reg,  slow_period_next;
+reg [7:0]          slow_period_reg, slow_period_next;
 reg [7:0]          fast_period_reg, fast_period_next;
 reg                update_tick;
 
@@ -140,13 +139,13 @@ always @(*) begin
     S_IDLE: begin
       if (decode_done_tick)
         begin
-          if (decode_cmd == CMD_FREQ)
+          if (decode_cmd == `CMD_FREQ)
             begin
               freq_next        = decode_freq;
               slow_period_next = decode_low_period;
               fast_period_next = decode_high_period;
             end
-          else if (decode_cmd == CMD_DATA)
+          else if (decode_cmd == `CMD_DATA)
             begin
               output_next  = decode_output;
               sel_out_next = decode_sel_out;

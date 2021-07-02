@@ -4,7 +4,9 @@
  *
  * Decoder the uart received data
  */
- 
+
+`include "../tb/parameter.v"
+
 module decoder #(
   parameter DATA_BIT = 32,
   parameter PACK_NUM = 5,
@@ -31,9 +33,6 @@ localparam [1:0] S_IDLE = 2'b00;
 localparam [1:0] S_FREQ = 2'b01;
 localparam [1:0] S_DATA = 2'b10;
 localparam [1:0] S_DONE = 2'b11;
-
-localparam [7:0] CMD_FREQ = 8'h0A;
-localparam [7:0] CMD_DATA = 8'h0B;
 
 localparam PACK_BIT   = 8 * PACK_NUM; // 32-bit data_pattern, 8-bit control
 localparam FREQ_BIT   = 8 * FREQ_NUM; // 32-bit freq_pattern, 8-bit low_period, 8-bit high_period
@@ -95,9 +94,9 @@ always @(*) begin
       if (rx_done_tick_i)
         begin
           cmd_next = data_i; // load rx data in MSB of data buffer
-          if (cmd_next == CMD_FREQ)
+          if (cmd_next == `CMD_FREQ)
             state_next = S_FREQ;
-          else if (cmd_next == CMD_DATA)
+          else if (cmd_next == `CMD_DATA)
             state_next = S_DATA;
         end
     end
@@ -133,13 +132,13 @@ always @(*) begin
       cmd_o            = cmd_reg;
       state_next       = S_IDLE;
 
-      if (cmd_reg == CMD_FREQ)
+      if (cmd_reg == `CMD_FREQ)
         begin
           freq_pattern_o   = freq_buf_reg[DATA_BIT-1:0];
           slow_period_o    = freq_buf_reg[DATA_BIT+7:DATA_BIT];
           fast_period_o    = freq_buf_reg[DATA_BIT+15:DATA_BIT+8];
         end
-      else if (cmd_reg == CMD_DATA)
+      else if (cmd_reg == `CMD_DATA)
         begin
           output_pattern_o = data_buf_reg[DATA_BIT-1:0];
           start_o          = data_buf_reg[DATA_BIT];

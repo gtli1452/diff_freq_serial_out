@@ -147,7 +147,7 @@ task UPDATE_DATA;
   input reg mode;
   begin
     // command
-    UART_WRITE_BYTE(8'h0B);
+    UART_WRITE_BYTE(`CMD_DATA);
     // data pattern
     UART_WRITE_BYTE(8'h55);
     UART_WRITE_BYTE(8'h55);
@@ -163,7 +163,7 @@ task UPDATE_FREQ;
   input [7:0] fast_period;
   begin
     // command
-    UART_WRITE_BYTE(8'h0A);
+    UART_WRITE_BYTE(`CMD_FREQ);
     // freq pattern
     UART_WRITE_BYTE(8'h11);
     UART_WRITE_BYTE(8'h22);
