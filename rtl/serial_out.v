@@ -10,7 +10,7 @@ module serial_out #(
 ) (
   input                 clk_i,
   input                 rst_ni,
-  input                 start_i,
+  input                 enable_i,
   input                 stop_i,
   input                 mode_i,        // one-shot, repeat
   input  [DATA_BIT-1:0] output_pattern_i,
@@ -92,11 +92,11 @@ always @(*) begin
   done_tick_next   = 0;
 
   case (state_reg)
-    // S_IDLE: waiting for the start_i, output depends on mode_i
+    // S_IDLE: waiting for the enable_i, output depends on mode_i
     S_IDLE: begin
       output_next = IDLE;
       // start output
-      if (start_i)
+      if (enable_i)
         begin
           // load the input data
           state_next       = S_ONE_SHOT;
@@ -119,7 +119,7 @@ always @(*) begin
         begin
           state_next = S_IDLE;
         end
-      else if (start_i)
+      else if (enable_i)
         begin
           // load the input data
           mode_next        = mode_i;           // load the mode, 0:one-shot, 1:repeat

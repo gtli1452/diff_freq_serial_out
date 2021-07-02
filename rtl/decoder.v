@@ -20,7 +20,7 @@ module decoder #(
   output reg [DATA_BIT-1:0] output_pattern_o,
   output reg [DATA_BIT-1:0] freq_pattern_o,
   output reg [3:0]          sel_out_o,
-  output reg                start_o,
+  output reg                enable_o,
   output reg                stop_o,
   output reg                mode_o,
   output reg [7:0]          slow_period_o,
@@ -85,7 +85,7 @@ always @(*) begin
   done_tick_o      = 0;
   output_pattern_o = 0;
   freq_pattern_o   = 0;
-  start_o          = 0;
+  enable_o          = 0;
   stop_o           = 0;
   mode_o           = 0;
   sel_out_o        = 0;
@@ -156,7 +156,7 @@ always @(*) begin
       if (cmd_reg == `CMD_DATA)
         begin
           output_pattern_o = data_buf_reg[DATA_BIT-1:0];
-          start_o          = data_buf_reg[DATA_BIT];
+          enable_o         = data_buf_reg[DATA_BIT];
           stop_o           = data_buf_reg[DATA_BIT+1];
           mode_o           = data_buf_reg[DATA_BIT+2];
           sel_out_o        = data_buf_reg[DATA_BIT+7:DATA_BIT+4];

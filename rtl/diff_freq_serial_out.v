@@ -32,7 +32,7 @@ reg [1:0]          state_reg,   state_next;
 reg [DATA_BIT-1:0] output_reg,  output_next;
 reg [DATA_BIT-1:0] freq_reg,    freq_next;
 reg [3:0]          sel_out_reg, sel_out_next;
-reg                start_reg,   start_next;
+reg                enable_reg,  enable_next;
 reg                stop_reg,    stop_next;
 reg                mode_reg,    mode_next;
 reg [7:0]          slow_period_reg, slow_period_next;
@@ -43,7 +43,7 @@ reg                update_tick;
 wire [DATA_BIT-1:0] decode_output;
 wire [DATA_BIT-1:0] decode_freq;
 wire [3:0]          decode_sel_out;
-wire                decode_start;
+wire                decode_enable;
 wire                decode_stop;
 wire                decode_mode;
 wire [7:0]          decode_low_period;
@@ -54,14 +54,14 @@ wire                decode_done_tick;
 // Signal to serial out entity
 reg [DATA_BIT-1:0]   channel_output[OUTPUT_NUM-1:0];
 reg [DATA_BIT-1:0]   channel_output_next[OUTPUT_NUM-1:0];
-reg [OUTPUT_NUM-1:0] channel_start, channel_start_next;
+reg [OUTPUT_NUM-1:0] channel_enable, channel_enable_next;
 reg [OUTPUT_NUM-1:0] channel_stop,  channel_stop_next;
 reg [OUTPUT_NUM-1:0] channel_mode,  channel_mode_next;
 
 // Wire assignment
-// Create start_tick for one-shot
-wire [OUTPUT_NUM-1:0] start_tick;
-assign start_tick = channel_start & {OUTPUT_NUM{update_tick}};
+// Create enable_tick for one-shot
+wire [OUTPUT_NUM-1:0] enable_tick;
+assign enable_tick = channel_enable & {OUTPUT_NUM{update_tick}};
 
 // for loop variable
 integer i;
@@ -74,14 +74,14 @@ always @(posedge clk_i,  negedge rst_ni) begin
       state_reg       <= S_IDLE;
       output_reg      <= 0;
       sel_out_reg     <= 0;
-      start_reg       <= 0;
+      enable_reg      <= 0;
       stop_reg        <= 0;
       mode_reg        <= 0;
       freq_reg        <= 0;
       slow_period_reg <= SLOW_PERIOD; // 5MHz
       fast_period_reg <= FAST_PERIOD; // 20MHz
       // control bit pattern
-      channel_start   <= 0;
+      channel_enable  <= 0;
       channel_stop    <= 0;
       channel_mode    <= 0;
 
@@ -95,14 +95,14 @@ always @(posedge clk_i,  negedge rst_ni) begin
       state_reg       <= state_next;
       output_reg      <= output_next;
       sel_out_reg     <= sel_out_next;
-      start_reg       <= start_next;
+      enable_reg      <= enable_next;
       stop_reg        <= stop_next;
       mode_reg        <= mode_next;
       freq_reg        <= freq_next;
       slow_period_reg <= slow_period_next;
       fast_period_reg <= fast_period_next;
       // control bit pattern
-      channel_start   <= channel_start_next;
+      channel_enable  <= channel_enable_next;
       channel_stop    <= channel_stop_next;
       channel_mode    <= channel_mode_next;
       
@@ -118,16 +118,16 @@ always @(*) begin
   state_next       = state_reg;
   output_next      = output_reg;
   sel_out_next     = sel_out_reg;
-  start_next       = start_reg;
+  enable_next      = enable_reg;
   stop_next        = stop_reg;
   mode_next        = mode_reg;
   freq_next        = freq_reg;
   slow_period_next = slow_period_reg;
   fast_period_next = fast_period_reg;
   // control bit pattern
-  channel_start_next = channel_start;
-  channel_stop_next  = channel_stop;
-  channel_mode_next  = channel_mode;
+  channel_enable_next = channel_enable;
+  channel_stop_next = channel_stop;
+  channel_mode_next = channel_mode;
   update_tick = 0;
   
   for (i = 0; i < OUTPUT_NUM; i = i + 1)
@@ -143,7 +143,7 @@ always @(*) begin
             begin
               output_next  = decode_output;
               sel_out_next = decode_sel_out;
-              start_next   = decode_start;
+              enable_next  = decode_enable;
               stop_next    = decode_stop;
               mode_next    = decode_mode;
               state_next   = S_UPDATE;
@@ -167,9 +167,9 @@ always @(*) begin
         state_next = S_IDLE;
 
       channel_output_next[sel_out_reg] = output_reg;
-      channel_start_next[sel_out_reg]  = start_reg;
-      channel_stop_next[sel_out_reg]   = stop_reg;
-      channel_mode_next[sel_out_reg]   = mode_reg;
+      channel_enable_next[sel_out_reg] = enable_reg;
+      channel_stop_next[sel_out_reg] = stop_reg;
+      channel_mode_next[sel_out_reg] = mode_reg;
     end
 
     S_DONE: begin
@@ -192,7 +192,7 @@ decoder #(
   .output_pattern_o(decode_output),
   .freq_pattern_o  (decode_freq),
   .sel_out_o       (decode_sel_out),
-  .start_o         (decode_start),
+  .enable_o        (decode_enable),
   .stop_o          (decode_stop),
   .mode_o          (decode_mode),
   .slow_period_o   (decode_low_period),
@@ -210,7 +210,7 @@ generate for (j = 0; j < OUTPUT_NUM; j = j + 1)
     ) channel (
       .clk_i           (clk_i),
       .rst_ni          (rst_ni),
-      .start_i         (start_tick[j]),
+      .enable_i        (enable_tick[j]),
       .stop_i          (channel_stop[j]),
       .mode_i          (channel_mode[j]), // one-shot, repeat
       .output_pattern_i(channel_output[j]),
