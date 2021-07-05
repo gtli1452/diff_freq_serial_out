@@ -6,12 +6,15 @@
 
 `timescale 1ns / 100ps
 `include "parameter.vh"
+`include "../rtl/user_cmd.vh"
 
 module decoder_tb ();
 
   // task parameter
   localparam ONE_SHOT_MODE = 1'b0;
   localparam REPEAT_MODE   = 1'b1;
+  localparam DISABLE       = 1'b0;
+  localparam ENABLE        = 1'b1;
 
   // Signal declaration
   reg clk;
@@ -31,7 +34,7 @@ module decoder_tb ();
   wire [3:0]           sel_out_o;
   wire                 mode_o;
   wire                 stop_o;
-  wire                 start_o;
+  wire                 enable_o;
   wire [`DATA_BIT-1:0] freq_pattern_o;
   wire [7:0]           slow_period_o;
   wire [7:0]           fast_period_o;
@@ -65,7 +68,7 @@ module decoder_tb ();
     .freq_pattern_o  (freq_pattern_o),
     .sel_out_o       (sel_out_o),
     .mode_o          (mode_o),
-    .start_o         (start_o),
+    .enable_o        (enable_o),
     .stop_o          (stop_o),
     .slow_period_o   (slow_period_o),
     .fast_period_o   (fast_period_o),
@@ -92,15 +95,19 @@ module decoder_tb ();
     .tx_done_tick_o(tb_tx_done)
   );
 
+  reg [7:0] channel = 8'h5;
   reg [7:0] slow_period = 8'h14;
   reg [7:0] fast_period = 8'h5;
+  reg [31:0] freq_pattern = 32'h11223344;
+  reg [31:0] data_pattern = 32'hBBCCDDEE;
   //Starting test
   initial begin
     @(posedge rst_n); // wait for finish reset
     // update frequency
-    UPDATE_FREQ(slow_period, fast_period);
-    UPDATE_DATA(0,  ONE_SHOT_MODE);
-
+    UPDATE_PERIOD(slow_period, fast_period);
+    UPDATE_FREQ(freq_pattern);
+    UPDATE_DATA(channel, data_pattern);
+    UPDATE_CTRL(channel, REPEAT_MODE, ENABLE);
   end
 
   //To check RX module
@@ -126,35 +133,58 @@ module decoder_tb ();
   endtask
 
   task UPDATE_DATA;
-    input [3:0] channel;
-    input reg mode;
+    input [7:0] channel;
+    input [31:0] data;
+    integer i;
     begin
       // command
       UART_WRITE_BYTE(`CMD_DATA);
+      // channel index
+      UART_WRITE_BYTE(channel);
       // data pattern
-      UART_WRITE_BYTE(8'h55);
-      UART_WRITE_BYTE(8'h55);
-      UART_WRITE_BYTE(8'h55);
-      UART_WRITE_BYTE(8'h55);
-      // control byte
-      UART_WRITE_BYTE({channel, 1'b0, mode, {2'h1}});
+      for (i = 0; i < 4; i = i+1)
+        begin
+          UART_WRITE_BYTE(data[7:0]);
+          data = data[31:8];
+        end
     end
   endtask
 
   task UPDATE_FREQ;
-    input [7:0] slow_period;
-    input [7:0] fast_period;
+    input [31:0] freq;
+    integer i;
     begin
       // command
       UART_WRITE_BYTE(`CMD_FREQ);
       // freq pattern
-      UART_WRITE_BYTE(8'h11);
-      UART_WRITE_BYTE(8'h22);
-      UART_WRITE_BYTE(8'h33);
-      UART_WRITE_BYTE(8'h44);
-  
+      for (i = 0; i < 4; i = i+1)
+        begin
+          UART_WRITE_BYTE(freq[7:0]);
+          freq = freq[31:8];
+        end
+    end
+  endtask
+
+  task UPDATE_PERIOD;
+    input [7:0] slow_period;
+    input [7:0] fast_period;
+    begin
+      // command
+      UART_WRITE_BYTE(`CMD_PERIOD);
       UART_WRITE_BYTE(slow_period);
       UART_WRITE_BYTE(fast_period);
+    end
+  endtask
+
+  task UPDATE_CTRL;
+    input [7:0] channel;
+    input mode;
+    input en;
+    begin
+      // command
+      UART_WRITE_BYTE(`CMD_CTRL);
+      UART_WRITE_BYTE(channel);
+      UART_WRITE_BYTE({6'h0, mode, en});
     end
   endtask
 

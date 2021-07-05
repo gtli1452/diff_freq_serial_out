@@ -6,12 +6,15 @@
 
 `timescale 1ns / 100ps
 `include "parameter.vh"
+`include "../rtl/user_cmd.vh"
 
 module diff_freq_serial_out_tb ();
 
 // task parameter
 localparam ONE_SHOT_MODE = 1'b0;
 localparam REPEAT_MODE   = 1'b1;
+localparam DISABLE       = 1'b0;
+localparam ENABLE        = 1'b1;
 
 // Signal declaration
 reg clk   = 0;
@@ -44,9 +47,6 @@ wire tb_TxSerial;
 wire       tb_rx_done;
 wire       tb_tx_done;
 wire [7:0] tb_received_data;
-
-// internal signal
-wire [3:0] sel_out_reg = serial_out_unit.sel_out_reg;
 
 // system clock generator
 always #(`SYS_PERIOD_NS/2) clk = ~clk;
@@ -102,22 +102,22 @@ initial begin
   // update frequency
   UPDATE_FREQ(freq_pattern);
   UPDATE_PERIOD(slow_period, fast_period);
-  UPDATE_DATA(0,  ONE_SHOT_MODE);
-  UPDATE_DATA(1,  ONE_SHOT_MODE);
-  UPDATE_DATA(2,  ONE_SHOT_MODE);
-  UPDATE_DATA(3,  ONE_SHOT_MODE);
-  UPDATE_DATA(4,  ONE_SHOT_MODE);
-  UPDATE_DATA(5,  ONE_SHOT_MODE);
-  UPDATE_DATA(6,  ONE_SHOT_MODE);
-  UPDATE_DATA(7,  ONE_SHOT_MODE);
-  UPDATE_DATA(8,  ONE_SHOT_MODE);
-  UPDATE_DATA(9,  ONE_SHOT_MODE);
-  UPDATE_DATA(10, ONE_SHOT_MODE);
-  UPDATE_DATA(11, ONE_SHOT_MODE);
-  UPDATE_DATA(12, ONE_SHOT_MODE);
-  UPDATE_DATA(13, ONE_SHOT_MODE);
-  UPDATE_DATA(14, ONE_SHOT_MODE);
-  UPDATE_DATA(15, ONE_SHOT_MODE);
+  UPDATE_DATA(0,  ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(1,  ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(2,  ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(3,  ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(4,  ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(5,  ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(6,  ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(7,  ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(8,  ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(9,  ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(10, ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(11, ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(12, ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(13, ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(14, ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(15, ONE_SHOT_MODE, ENABLE);
   
   //$finish;
 end
@@ -145,18 +145,22 @@ task UART_WRITE_BYTE;
 endtask
 
 task UPDATE_DATA;
-  input [3:0] channel;
+  input [7:0] channel;
   input reg mode;
+  input reg en;
   begin
     // command
     UART_WRITE_BYTE(`CMD_DATA);
+    UART_WRITE_BYTE(channel);
     // data pattern
     UART_WRITE_BYTE(8'h55);
     UART_WRITE_BYTE(8'h55);
     UART_WRITE_BYTE(8'h55);
     UART_WRITE_BYTE(8'h55);
     // control byte
-    UART_WRITE_BYTE({channel, 1'b0, mode, {2'h1}});
+    UART_WRITE_BYTE(`CMD_CTRL);
+    UART_WRITE_BYTE(channel);
+    UART_WRITE_BYTE({6'h0, mode, en});
   end
 endtask
 

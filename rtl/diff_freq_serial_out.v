@@ -9,7 +9,7 @@
 
 module diff_freq_serial_out #(
   parameter       DATA_BIT    = 32,
-  parameter       PACK_NUM    = 9,
+  parameter       PACK_NUM    = 5,
   parameter       OUTPUT_NUM  = 16,
   parameter [7:0] SLOW_PERIOD = 20,
   parameter [7:0] FAST_PERIOD = 5
@@ -24,7 +24,8 @@ module diff_freq_serial_out #(
 // Define the states
 localparam [1:0] S_IDLE   = 2'b00;
 localparam [1:0] S_UPDATE = 2'b01;
-localparam [1:0] S_DONE   = 2'b10;
+localparam [1:0] S_CTRL   = 2'b10;
+localparam [1:0] S_DONE   = 2'b11;
 
 // Signal declaration
 // to load the decoder output
@@ -143,9 +144,6 @@ always @(*) begin
             begin
               output_next  = decode_output;
               sel_out_next = decode_sel_out;
-              enable_next  = decode_enable;
-              stop_next    = decode_stop;
-              mode_next    = decode_mode;
               state_next   = S_UPDATE;
             end
           else if (decode_cmd == `CMD_FREQ)
@@ -157,18 +155,28 @@ always @(*) begin
               slow_period_next = decode_low_period;
               fast_period_next = decode_high_period;
             end
+          else if (decode_cmd == `CMD_CTRL)
+            begin
+              sel_out_next = decode_sel_out;
+              enable_next = decode_enable;
+              mode_next = decode_mode;
+              state_next = S_CTRL;
+            end
         end
     end
 
     S_UPDATE: begin
+      state_next = S_IDLE;
+      channel_output_next[sel_out_reg] = output_reg;
+    end
+
+    S_CTRL: begin
       if (sel_out_reg == OUTPUT_NUM - 1)
         state_next = S_DONE;
       else
         state_next = S_IDLE;
 
-      channel_output_next[sel_out_reg] = output_reg;
       channel_enable_next[sel_out_reg] = enable_reg;
-      channel_stop_next[sel_out_reg] = stop_reg;
       channel_mode_next[sel_out_reg] = mode_reg;
     end
 

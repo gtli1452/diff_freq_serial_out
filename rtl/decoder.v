@@ -9,7 +9,7 @@
 
 module decoder #(
   parameter DATA_BIT   = 32,
-  parameter PACK_NUM   = 4,
+  parameter PACK_NUM   = 5,
   parameter FREQ_NUM   = 4,
   parameter PERIOD_NUM = 2
 ) (
@@ -47,6 +47,7 @@ localparam FREQ_INDEX = 2 * DATA_BIT;
 reg [3:0]          state_reg, state_next;
 reg [PACK_BIT-1:0] data_buf_reg, data_buf_next;
 reg [FREQ_BIT-1:0] freq_buf_reg, freq_buf_next;
+reg [15:0]         ctrl_reg, ctrl_next;
 reg [15:0]         period_reg, period_next; // slow_period + fast_period
 reg [7:0]          count_reg, count_next;
 reg [7:0]          cmd_reg, cmd_next;
@@ -59,6 +60,7 @@ always @(posedge clk_i, negedge rst_ni) begin
       state_reg    <= S_IDLE;
       data_buf_reg <= 0;
       freq_buf_reg <= 0;
+      ctrl_reg     <= 0;
       period_reg   <= 0;
       count_reg    <= 0;
       cmd_reg      <= 0;
@@ -68,6 +70,7 @@ always @(posedge clk_i, negedge rst_ni) begin
       state_reg    <= state_next;
       data_buf_reg <= data_buf_next;
       freq_buf_reg <= freq_buf_next;
+      ctrl_reg     <= ctrl_next;
       period_reg   <= period_next;
       count_reg    <= count_next;
       cmd_reg      <= cmd_next;
@@ -79,13 +82,14 @@ always @(*) begin
   state_next       = state_reg; // default state : the same
   data_buf_next    = data_buf_reg;
   freq_buf_next    = freq_buf_reg;
+  ctrl_next        = ctrl_reg;
   period_next      = period_reg;
   count_next       = count_reg;
   cmd_next         = cmd_reg;
   done_tick_o      = 0;
   output_pattern_o = 0;
   freq_pattern_o   = 0;
-  enable_o          = 0;
+  enable_o         = 0;
   stop_o           = 0;
   mode_o           = 0;
   sel_out_o        = 0;
@@ -105,6 +109,8 @@ always @(*) begin
             state_next = S_FREQ;
           else if (cmd_next == `CMD_PERIOD)
             state_next = S_PERIOD;
+          else if (cmd_next == `CMD_CTRL)
+            state_next = S_CTRL;
           else
             state_next = S_IDLE;
         end
@@ -136,6 +142,19 @@ always @(*) begin
         end
     end
 
+    S_CTRL: begin
+      if (rx_done_tick_i)
+        begin
+          ctrl_next = {data_i, ctrl_reg[15:8]};
+          count_next = count_reg + 1'b1;
+        end
+      else if (count_reg == 2)
+        begin
+          count_next = 0;
+          state_next = S_DONE;
+        end
+    end
+
     S_DATA: begin
       if (rx_done_tick_i)
         begin
@@ -155,11 +174,8 @@ always @(*) begin
       state_next = S_IDLE;
       if (cmd_reg == `CMD_DATA)
         begin
-          output_pattern_o = data_buf_reg[DATA_BIT-1:0];
-          enable_o         = data_buf_reg[DATA_BIT];
-          stop_o           = data_buf_reg[DATA_BIT+1];
-          mode_o           = data_buf_reg[DATA_BIT+2];
-          sel_out_o        = data_buf_reg[DATA_BIT+7:DATA_BIT+4];
+          sel_out_o = data_buf_reg[7:0];
+          output_pattern_o = data_buf_reg[DATA_BIT+7:8];
         end
       else if (cmd_reg == `CMD_FREQ)
         begin
@@ -169,6 +185,12 @@ always @(*) begin
         begin
           fast_period_o = period_reg[15:8];
           slow_period_o = period_reg[7:0];
+        end
+      else if (cmd_reg == `CMD_CTRL)
+        begin
+          sel_out_o = ctrl_reg[7:0];
+          mode_o = ctrl_reg[9];
+          enable_o = ctrl_reg[8];
         end
     end
 
