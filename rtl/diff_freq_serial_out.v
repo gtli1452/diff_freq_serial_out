@@ -32,7 +32,7 @@ localparam [1:0] S_DONE   = 2'b11;
 reg [1:0]          state_reg,   state_next;
 reg [DATA_BIT-1:0] output_reg,  output_next;
 reg [DATA_BIT-1:0] freq_reg,    freq_next;
-reg [3:0]          sel_out_reg, sel_out_next;
+reg [7:0]          sel_out_reg, sel_out_next;
 reg                enable_reg,  enable_next;
 reg                stop_reg,    stop_next;
 reg                mode_reg,    mode_next;
@@ -43,7 +43,7 @@ reg                update_tick;
 // Decoder signal
 wire [DATA_BIT-1:0] decode_output;
 wire [DATA_BIT-1:0] decode_freq;
-wire [3:0]          decode_sel_out;
+wire [7:0]          decode_sel_out;
 wire                decode_enable;
 wire                decode_stop;
 wire                decode_mode;

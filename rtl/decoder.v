@@ -19,7 +19,7 @@ module decoder #(
   input                     rx_done_tick_i,
   output reg [DATA_BIT-1:0] output_pattern_o,
   output reg [DATA_BIT-1:0] freq_pattern_o,
-  output reg [3:0]          sel_out_o,
+  output reg [7:0]          sel_out_o,
   output reg                enable_o,
   output reg                stop_o,
   output reg                mode_o,
