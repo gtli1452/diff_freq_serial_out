@@ -24,8 +24,9 @@ module serial_out #(
 
 // Define the states
 localparam [1:0] S_IDLE     = 2'b00;
-localparam [1:0] S_ONE_SHOT = 2'b01;
-localparam [1:0] S_DONE     = 2'b10;
+localparam [1:0] S_UPDATE   = 2'b01;
+localparam [1:0] S_ONE_SHOT = 2'b10;
+localparam [1:0] S_DONE     = 2'b11;
 
 localparam IDLE     = 1'b0;
 localparam ONE_SHOT = 2'b00;
@@ -54,8 +55,8 @@ always @(posedge clk_i, negedge rst_ni) begin
       mode_reg      <= 0;
       output_reg    <= 0;
       data_bit_reg  <= 0;
-      data_buf_reg  <= {(DATA_BIT){1'b0}};
-      freq_buf_reg  <= {(DATA_BIT){1'b0}};
+      data_buf_reg  <= 0;
+      freq_buf_reg  <= 0;
       slow_period   <= 0;
       fast_period   <= 0;
       count_reg     <= 0;
@@ -98,52 +99,39 @@ always @(*) begin
       output_next = IDLE;
       // start output
       if (enable_i)
-        begin
-          // load the input data
-          state_next       = S_ONE_SHOT;
-          mode_next        = mode_i;  // load the mode, 0:one-shot, 1:repeat
-          data_buf_next    = output_pattern_i;
-          freq_buf_next    = freq_pattern_i;
-          slow_period_next = slow_period_i;
-          fast_period_next = fast_period_i;
-          data_bit_next    = 0;
-          if (freq_buf_next[0])
-            count_next = fast_period_next - 1'b1;
-          else
-            count_next = slow_period_next - 1'b1;
-        end
+        state_next = S_UPDATE;
     end // case: S_IDLE
+    S_UPDATE: begin
+      // load the input data
+      state_next       = S_ONE_SHOT;
+      mode_next        = mode_i;  // 0:one-shot, 1:repeat
+      data_buf_next    = output_pattern_i;
+      freq_buf_next    = freq_pattern_i;
+      slow_period_next = slow_period_i;
+      fast_period_next = fast_period_i;
+      data_bit_next    = 0;
+      if (freq_buf_next[0])
+        count_next = fast_period_next - 1'b1;
+      else
+        count_next = slow_period_next - 1'b1;
+    end
     // S_ONE_SHOT: serially output 32-bit data, it can change period per bit
     S_ONE_SHOT: begin
       output_next = data_buf_reg[data_bit_reg]; // transmit lsb first
       if (stop_i)
-        begin
-          state_next = S_IDLE;
-        end
+        state_next = S_IDLE;
       else if (enable_i)
-        begin
-          // load the input data
-          mode_next        = mode_i;           // load the mode, 0:one-shot, 1:repeat
-          data_buf_next    = output_pattern_i;
-          freq_buf_next    = freq_pattern_i;
-          slow_period_next = slow_period_i;
-          fast_period_next = fast_period_i;
-          data_bit_next    = 0;
-          if (freq_buf_next[0])
-            count_next = fast_period_next - 1'b1;
-          else
-            count_next = slow_period_next - 1'b1;
-        end
+        state_next = S_UPDATE;
       else if (count_reg == 0)
         begin
           bit_tick_next = 1;
          
-          if (data_bit_reg == (DATA_BIT - 1 ))
+          if (data_bit_reg == (DATA_BIT - 1))
             state_next = S_DONE;
           else
             data_bit_next = data_bit_reg + 1'b1;
 
-          if (freq_buf_reg[data_bit_next])    // to get the next-bit freq, use "data_bit_next"
+          if (freq_buf_reg[data_bit_next]) // to get the next-bit freq, use "data_bit_next"
             count_next = fast_period_next - 1'b1;
           else
             count_next = slow_period_next - 1'b1;
@@ -153,20 +141,13 @@ always @(*) begin
     end // case: S_ONE_SHOT
     // S_DONE: assert done_tick_o for one clock
     S_DONE: begin
-      output_next    = output_reg;
+      output_next = IDLE;
       done_tick_next = 1;
       // repeat output
       if (mode_reg == REPEAT)
-        begin
-          state_next    = S_ONE_SHOT;
-          data_bit_next = 0;
-          if (freq_buf_next[0])
-            count_next = fast_period_next - 1'b1;
-          else
-            count_next = slow_period_next - 1'b1;
-        end
+        state_next = S_UPDATE;
       else
-          state_next = S_IDLE;
+        state_next = S_IDLE;
     end // case: S_DONE
 
     default: state_next = S_IDLE;
