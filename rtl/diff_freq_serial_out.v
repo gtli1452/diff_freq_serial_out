@@ -227,7 +227,6 @@ generate for (j = 0; j < OUTPUT_NUM; j = j + 1)
       .slow_period_i   (slow_period_reg),
       .fast_period_i   (fast_period_reg),
       .serial_out_o    (serial_out_o[j]), // idle state is low
-      .bit_tick_o      (),
       .done_tick_o     ()
     );
   end
