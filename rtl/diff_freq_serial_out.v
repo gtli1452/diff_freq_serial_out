@@ -22,10 +22,10 @@ module diff_freq_serial_out #(
 );
 
 // Define the states
-localparam [1:0] S_IDLE   = 2'b00;
-localparam [1:0] S_UPDATE = 2'b01;
-localparam [1:0] S_CTRL   = 2'b10;
-localparam [1:0] S_DONE   = 2'b11;
+localparam [1:0] S_IDLE = 2'b00;
+localparam [1:0] S_DATA = 2'b01;
+localparam [1:0] S_CTRL = 2'b10;
+localparam [1:0] S_DONE = 2'b11;
 
 // Signal declaration
 // to load the decoder output
@@ -47,8 +47,8 @@ wire [7:0]          decode_sel_out;
 wire                decode_enable;
 wire                decode_stop;
 wire                decode_mode;
-wire [7:0]          decode_low_period;
-wire [7:0]          decode_high_period;
+wire [7:0]          decode_slow_period;
+wire [7:0]          decode_fast_period;
 wire [7:0]          decode_cmd;
 wire                decode_done_tick;
 
@@ -144,7 +144,7 @@ always @(*) begin
             begin
               output_next  = decode_output;
               sel_out_next = decode_sel_out;
-              state_next   = S_UPDATE;
+              state_next   = S_DATA;
             end
           else if (decode_cmd == `CMD_FREQ)
             begin
@@ -152,8 +152,8 @@ always @(*) begin
             end
           else if (decode_cmd == `CMD_PERIOD)
             begin
-              slow_period_next = decode_low_period;
-              fast_period_next = decode_high_period;
+              slow_period_next = decode_slow_period;
+              fast_period_next = decode_fast_period;
             end
           else if (decode_cmd == `CMD_CTRL)
             begin
@@ -165,7 +165,7 @@ always @(*) begin
         end
     end
 
-    S_UPDATE: begin
+    S_DATA: begin
       state_next = S_IDLE;
       channel_output_next[sel_out_reg] = output_reg;
     end
@@ -203,8 +203,8 @@ decoder #(
   .enable_o        (decode_enable),
   .stop_o          (decode_stop),
   .mode_o          (decode_mode),
-  .slow_period_o   (decode_low_period),
-  .fast_period_o   (decode_high_period),
+  .slow_period_o   (decode_slow_period),
+  .fast_period_o   (decode_fast_period),
   .cmd_o           (decode_cmd),
   .done_tick_o     (decode_done_tick)
 );
