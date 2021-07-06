@@ -21,7 +21,7 @@ module decoder #(
   output reg [DATA_BIT-1:0] freq_pattern_o,
   output reg [7:0]          sel_out_o,
   output reg                enable_o,
-  output reg                stop_o,
+  output                    stop_o,
   output reg [1:0]          mode_o,
   output reg [7:0]          slow_period_o,
   output reg [7:0]          fast_period_o,
@@ -90,7 +90,6 @@ always @(*) begin
   output_pattern_o = 0;
   freq_pattern_o   = 0;
   enable_o         = 0;
-  stop_o           = 0;
   mode_o           = 0;
   sel_out_o        = 0;
   slow_period_o    = 0;
@@ -199,5 +198,6 @@ always @(*) begin
 end
 
 // Output
+assign stop_o = ~enable_o;
 
 endmodule

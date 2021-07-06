@@ -160,6 +160,7 @@ always @(*) begin
             begin
               sel_out_next = decode_sel_out;
               enable_next = decode_enable;
+              stop_next = decode_stop;
               mode_next = decode_mode;
               state_next = S_CTRL;
             end
@@ -178,6 +179,7 @@ always @(*) begin
         state_next = S_IDLE;
 
       channel_enable_next[sel_out_reg] = enable_reg;
+      channel_stop_next[sel_out_reg] = stop_reg;
       channel_mode_next[sel_out_reg] = mode_reg;
     end
 
