@@ -11,8 +11,9 @@
 module decoder_tb ();
 
   // task parameter
-  localparam ONE_SHOT_MODE = 1'b0;
-  localparam REPEAT_MODE   = 1'b1;
+  localparam ONE_SHOT_MODE = 2'b00;
+  localparam REPEAT_MODE   = 2'b01;
+  localparam REPEAT_N_MODE = 2'b10;
   localparam DISABLE       = 1'b0;
   localparam ENABLE        = 1'b1;
 
@@ -32,7 +33,7 @@ module decoder_tb ();
   // decoder signal
   wire [`DATA_BIT-1:0] output_pattern_o;
   wire [3:0]           sel_out_o;
-  wire                 mode_o;
+  wire [1:0]           mode_o;
   wire                 stop_o;
   wire                 enable_o;
   wire [`DATA_BIT-1:0] freq_pattern_o;
@@ -178,13 +179,13 @@ module decoder_tb ();
 
   task UPDATE_CTRL;
     input [7:0] channel;
-    input mode;
+    input [1:0] mode;
     input en;
     begin
       // command
       UART_WRITE_BYTE(`CMD_CTRL);
       UART_WRITE_BYTE(channel);
-      UART_WRITE_BYTE({6'h0, mode, en});
+      UART_WRITE_BYTE({5'h0, mode, en});
     end
   endtask
 

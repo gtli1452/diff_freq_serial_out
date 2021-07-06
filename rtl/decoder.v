@@ -22,7 +22,7 @@ module decoder #(
   output reg [7:0]          sel_out_o,
   output reg                enable_o,
   output reg                stop_o,
-  output reg                mode_o,
+  output reg [1:0]          mode_o,
   output reg [7:0]          slow_period_o,
   output reg [7:0]          fast_period_o,
   output reg [7:0]          cmd_o,
@@ -189,7 +189,7 @@ always @(*) begin
       else if (cmd_reg == `CMD_CTRL)
         begin
           sel_out_o = ctrl_reg[7:0];
-          mode_o = ctrl_reg[9];
+          mode_o = ctrl_reg[10:9];
           enable_o = ctrl_reg[8];
         end
     end

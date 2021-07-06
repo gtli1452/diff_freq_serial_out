@@ -11,8 +11,9 @@
 module diff_freq_serial_out_tb ();
 
 // task parameter
-localparam ONE_SHOT_MODE = 1'b0;
-localparam REPEAT_MODE   = 1'b1;
+localparam ONE_SHOT_MODE = 2'b00;
+localparam REPEAT_MODE   = 2'b01;
+localparam REPEAT_N_MODE = 2'b10;
 localparam DISABLE       = 1'b0;
 localparam ENABLE        = 1'b1;
 
@@ -146,7 +147,7 @@ endtask
 
 task UPDATE_DATA;
   input [7:0] channel;
-  input reg mode;
+  input reg [1:0] mode;
   input reg en;
   begin
     // command
@@ -160,7 +161,7 @@ task UPDATE_DATA;
     // control byte
     UART_WRITE_BYTE(`CMD_CTRL);
     UART_WRITE_BYTE(channel);
-    UART_WRITE_BYTE({6'h0, mode, en});
+    UART_WRITE_BYTE({5'h0, mode, en});
   end
 endtask
 

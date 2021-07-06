@@ -12,7 +12,7 @@ module serial_out #(
   input                 rst_ni,
   input                 enable_i,
   input                 stop_i,
-  input                 mode_i,        // one-shot, repeat
+  input  [1:0]          mode_i,        // one-shot, repeat
   input  [DATA_BIT-1:0] output_pattern_i,
   input  [DATA_BIT-1:0] freq_pattern_i,
   input  [7:0]          slow_period_i,
@@ -28,12 +28,13 @@ localparam [1:0] S_ONE_SHOT = 2'b01;
 localparam [1:0] S_DONE     = 2'b10;
 
 localparam IDLE     = 1'b0;
-localparam ONE_SHOT = 1'b0;
-localparam REPEAT   = 1'b1;
+localparam ONE_SHOT = 2'b00;
+localparam REPEAT   = 2'b01;
+localparam N_TIMES  = 2'b10;
 
 // Signal declaration
 reg [1:0]          state_reg,     state_next;
-reg                mode_reg,      mode_next;
+reg [1:0]          mode_reg,      mode_next;
 reg                output_reg,    output_next;
 reg [5:0]          data_bit_reg,  data_bit_next;
 reg [DATA_BIT-1:0] data_buf_reg,  data_buf_next;

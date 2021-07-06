@@ -35,7 +35,7 @@ reg [DATA_BIT-1:0] freq_reg,    freq_next;
 reg [7:0]          sel_out_reg, sel_out_next;
 reg                enable_reg,  enable_next;
 reg                stop_reg,    stop_next;
-reg                mode_reg,    mode_next;
+reg [1:0]          mode_reg,    mode_next;
 reg [7:0]          slow_period_reg, slow_period_next;
 reg [7:0]          fast_period_reg, fast_period_next;
 reg                update_tick;
@@ -46,7 +46,7 @@ wire [DATA_BIT-1:0] decode_freq;
 wire [7:0]          decode_sel_out;
 wire                decode_enable;
 wire                decode_stop;
-wire                decode_mode;
+wire [1:0]          decode_mode;
 wire [7:0]          decode_slow_period;
 wire [7:0]          decode_fast_period;
 wire [7:0]          decode_cmd;
@@ -57,7 +57,8 @@ reg [DATA_BIT-1:0]   channel_output[OUTPUT_NUM-1:0];
 reg [DATA_BIT-1:0]   channel_output_next[OUTPUT_NUM-1:0];
 reg [OUTPUT_NUM-1:0] channel_enable, channel_enable_next;
 reg [OUTPUT_NUM-1:0] channel_stop,  channel_stop_next;
-reg [OUTPUT_NUM-1:0] channel_mode,  channel_mode_next;
+reg [1:0]            channel_mode[OUTPUT_NUM-1:0];
+reg [1:0]            channel_mode_next[OUTPUT_NUM-1:0];
 
 // Wire assignment
 // Create enable_tick for one-shot
@@ -84,10 +85,10 @@ always @(posedge clk_i,  negedge rst_ni) begin
       // control bit pattern
       channel_enable  <= 0;
       channel_stop    <= 0;
-      channel_mode    <= 0;
 
       for (i = 0; i < OUTPUT_NUM; i = i + 1)
         begin
+          channel_mode[i] <= 0;
           channel_output[i] <= 0;
         end
     end
@@ -105,10 +106,10 @@ always @(posedge clk_i,  negedge rst_ni) begin
       // control bit pattern
       channel_enable  <= channel_enable_next;
       channel_stop    <= channel_stop_next;
-      channel_mode    <= channel_mode_next;
       
       for (i = 0; i < OUTPUT_NUM; i = i + 1)
         begin
+          channel_mode[i] <= channel_mode_next[i];
           channel_output[i] <= channel_output_next[i];
         end
     end
@@ -128,11 +129,11 @@ always @(*) begin
   // control bit pattern
   channel_enable_next = channel_enable;
   channel_stop_next = channel_stop;
-  channel_mode_next = channel_mode;
   update_tick = 0;
   
   for (i = 0; i < OUTPUT_NUM; i = i + 1)
     begin
+      channel_mode_next[i] = channel_mode[i];
       channel_output_next[i] = channel_output[i];
     end
 
