@@ -17,6 +17,7 @@ module serial_out #(
   input  [DATA_BIT-1:0] freq_pattern_i,
   input  [7:0]          slow_period_i,
   input  [7:0]          fast_period_i,
+  input  [7:0]          repeat_i,
   output                serial_out_o,  // idle state is low
   output                done_tick_o
 );
@@ -29,8 +30,8 @@ module serial_out #(
 
   localparam IDLE     = 1'b0;
   localparam ONE_SHOT = 2'b00;
-  localparam REPEAT   = 2'b01;
-  localparam N_TIMES  = 2'b10;
+  localparam CONTINUE = 2'b01;
+  localparam REPEAT   = 2'b10;
 
   // Signal declaration
   reg [1:0]          state_reg,     state_next;
@@ -41,6 +42,7 @@ module serial_out #(
   reg [DATA_BIT-1:0] freq_buf_reg,  freq_buf_next;
   reg [7:0]          slow_period,   slow_period_next;
   reg [7:0]          fast_period,   fast_period_next;
+  reg [7:0]          repeat_reg,    repeat_next;
   reg [7:0]          count_reg,     count_next;
   reg                done_tick_reg, done_tick_next;
 
@@ -57,6 +59,7 @@ module serial_out #(
         freq_buf_reg  <= 0;
         slow_period   <= 0;
         fast_period   <= 0;
+        repeat_reg    <= 0;
         count_reg     <= 0;
         done_tick_reg <= 0;
       end
@@ -70,6 +73,7 @@ module serial_out #(
         freq_buf_reg  <= freq_buf_next;
         slow_period   <= slow_period_next;
         fast_period   <= fast_period_next;
+        repeat_reg    <= repeat_next;
         count_reg     <= count_next;
         done_tick_reg <= done_tick_next;
       end
@@ -85,6 +89,7 @@ module serial_out #(
     freq_buf_next    = freq_buf_reg;
     slow_period_next = slow_period;
     fast_period_next = fast_period;
+    repeat_next      = repeat_reg;
     count_next       = count_reg;
     done_tick_next   = 0;
 
@@ -136,10 +141,18 @@ module serial_out #(
         output_next = IDLE;
         done_tick_next = 1;
 
-        if (mode_reg == REPEAT)
+        if (mode_reg == CONTINUE)
           state_next = S_UPDATE;
-        else if (mode_reg == N_TIMES)
-          state_next = S_UPDATE;
+        else if (mode_reg == REPEAT)
+          if (repeat_reg >= (repeat_i - 1))
+            begin
+              state_next = S_IDLE;
+              repeat_next = 0;
+            end
+          else begin
+            state_next = S_UPDATE;
+            repeat_next = repeat_reg + 1'b1;
+          end
         else
           state_next = S_IDLE;
       end

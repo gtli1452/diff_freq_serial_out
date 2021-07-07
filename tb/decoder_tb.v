@@ -12,8 +12,8 @@ module decoder_tb ();
 
   // task parameter
   localparam ONE_SHOT_MODE = 2'b00;
-  localparam REPEAT_MODE   = 2'b01;
-  localparam REPEAT_N_MODE = 2'b10;
+  localparam CONTINUE_MODE = 2'b01;
+  localparam REPEAT_MODE   = 2'b10;
   localparam DISABLE       = 1'b0;
   localparam ENABLE        = 1'b1;
 
@@ -32,13 +32,14 @@ module decoder_tb ();
 
   // decoder signal
   wire [`DATA_BIT-1:0] output_pattern_o;
-  wire [3:0]           sel_out_o;
+  wire [7:0]           sel_out_o;
   wire [1:0]           mode_o;
   wire                 stop_o;
   wire                 enable_o;
   wire [`DATA_BIT-1:0] freq_pattern_o;
   wire [7:0]           slow_period_o;
   wire [7:0]           fast_period_o;
+  wire [7:0]           repeat_o;
   wire [7:0]           cmd_o;
   wire                 done_tick_o;
 
@@ -73,6 +74,7 @@ module decoder_tb ();
     .stop_o          (stop_o),
     .slow_period_o   (slow_period_o),
     .fast_period_o   (fast_period_o),
+    .repeat_o        (repeat_o),
     .cmd_o           (cmd_o),
     .done_tick_o     (done_tick_o)
   );
@@ -99,6 +101,7 @@ module decoder_tb ();
   reg [7:0] channel = 8'h5;
   reg [7:0] slow_period = 8'h14;
   reg [7:0] fast_period = 8'h5;
+  reg [7:0] repeat_times = 8'h3;
   reg [31:0] freq_pattern = 32'h11223344;
   reg [31:0] data_pattern = 32'hBBCCDDEE;
   //Starting test
@@ -108,7 +111,8 @@ module decoder_tb ();
     UPDATE_PERIOD(slow_period, fast_period);
     UPDATE_FREQ(freq_pattern);
     UPDATE_DATA(channel, data_pattern);
-    UPDATE_CTRL(channel, REPEAT_MODE, ENABLE);
+    UPDATE_REPEAT(channel, repeat_times);
+    UPDATE_CTRL(channel, CONTINUE_MODE, ENABLE);
   end
 
   //To check RX module
@@ -186,6 +190,17 @@ module decoder_tb ();
       UART_WRITE_BYTE(`CMD_CTRL);
       UART_WRITE_BYTE(channel);
       UART_WRITE_BYTE({5'h0, mode, en});
+    end
+  endtask
+
+    task UPDATE_REPEAT;
+    input [7:0] channel;
+    input [7:0] repeat_times;
+    begin
+      // command
+      UART_WRITE_BYTE(`CMD_REPEAT);
+      UART_WRITE_BYTE(channel);
+      UART_WRITE_BYTE(repeat_times);
     end
   endtask
 

@@ -12,8 +12,8 @@ module diff_freq_serial_out_tb ();
 
 // task parameter
 localparam ONE_SHOT_MODE = 2'b00;
-localparam REPEAT_MODE   = 2'b01;
-localparam REPEAT_N_MODE = 2'b10;
+localparam CONTINUE_MODE = 2'b01;
+localparam REPEAT_MODE   = 2'b10;
 localparam DISABLE       = 1'b0;
 localparam ENABLE        = 1'b1;
 
@@ -98,27 +98,30 @@ UART #(
 reg [7:0] slow_period = 8'h14;
 reg [7:0] fast_period = 8'h5;
 reg [31:0] freq_pattern = 32'h5555_5555;
+
 initial begin
   @(posedge rst_n);       // wait for finish reset
   // update frequency
   UPDATE_FREQ(freq_pattern);
   UPDATE_PERIOD(slow_period, fast_period);
-  UPDATE_DATA(0,  ONE_SHOT_MODE, ENABLE);
-  UPDATE_DATA(1,  ONE_SHOT_MODE, ENABLE);
-  UPDATE_DATA(2,  ONE_SHOT_MODE, ENABLE);
-  UPDATE_DATA(3,  ONE_SHOT_MODE, ENABLE);
-  UPDATE_DATA(4,  ONE_SHOT_MODE, ENABLE);
-  UPDATE_DATA(5,  ONE_SHOT_MODE, ENABLE);
-  UPDATE_DATA(6,  ONE_SHOT_MODE, ENABLE);
-  UPDATE_DATA(7,  ONE_SHOT_MODE, ENABLE);
-  UPDATE_DATA(8,  ONE_SHOT_MODE, ENABLE);
-  UPDATE_DATA(9,  ONE_SHOT_MODE, ENABLE);
-  UPDATE_DATA(10, ONE_SHOT_MODE, ENABLE);
-  UPDATE_DATA(11, ONE_SHOT_MODE, ENABLE);
-  UPDATE_DATA(12, ONE_SHOT_MODE, ENABLE);
+  UPDATE_REPEAT(14, 2);
+  UPDATE_REPEAT(15, 3);
+  // UPDATE_DATA(0,  ONE_SHOT_MODE, ENABLE);
+  // UPDATE_DATA(1,  REPEAT_MODE, ENABLE);
+  // UPDATE_DATA(2,  ONE_SHOT_MODE, ENABLE);
+  // UPDATE_DATA(3,  REPEAT_MODE, ENABLE);
+  // UPDATE_DATA(4,  ONE_SHOT_MODE, ENABLE);
+  // UPDATE_DATA(5,  ONE_SHOT_MODE, ENABLE);
+  // UPDATE_DATA(6,  ONE_SHOT_MODE, ENABLE);
+  // UPDATE_DATA(7,  ONE_SHOT_MODE, ENABLE);
+  // UPDATE_DATA(8,  REPEAT_MODE, ENABLE);
+  // UPDATE_DATA(9,  ONE_SHOT_MODE, ENABLE);
+  // UPDATE_DATA(10, ONE_SHOT_MODE, ENABLE);
+  // UPDATE_DATA(11, ONE_SHOT_MODE, ENABLE);
+  // UPDATE_DATA(12, ONE_SHOT_MODE, ENABLE);
   UPDATE_DATA(13, ONE_SHOT_MODE, ENABLE);
-  UPDATE_DATA(14, ONE_SHOT_MODE, ENABLE);
-  UPDATE_DATA(15, ONE_SHOT_MODE, ENABLE);
+  UPDATE_DATA(14, REPEAT_MODE, ENABLE);
+  UPDATE_DATA(15, REPEAT_MODE, ENABLE);
   
   //$finish;
 end
@@ -188,6 +191,17 @@ task UPDATE_PERIOD;
     UART_WRITE_BYTE(`CMD_PERIOD);
     UART_WRITE_BYTE(slow_period);
     UART_WRITE_BYTE(fast_period);
+  end
+endtask
+
+task UPDATE_REPEAT;
+  input [7:0] channel;
+  input [7:0] repeat_times;
+  begin
+    // command
+    UART_WRITE_BYTE(`CMD_REPEAT);
+    UART_WRITE_BYTE(channel);
+    UART_WRITE_BYTE(repeat_times);
   end
 endtask
 

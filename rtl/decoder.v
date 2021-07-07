@@ -25,6 +25,7 @@ module decoder #(
   output reg [1:0]          mode_o,
   output reg [7:0]          slow_period_o,
   output reg [7:0]          fast_period_o,
+  output reg [7:0]          repeat_o,
   output reg [7:0]          cmd_o,
   output reg                done_tick_o
 );
@@ -49,6 +50,7 @@ reg [PACK_BIT-1:0] data_buf_reg, data_buf_next;
 reg [FREQ_BIT-1:0] freq_buf_reg, freq_buf_next;
 reg [15:0]         ctrl_reg, ctrl_next;
 reg [15:0]         period_reg, period_next; // slow_period + fast_period
+reg [15:0]         repeat_reg, repeat_next;
 reg [7:0]          count_reg, count_next;
 reg [7:0]          cmd_reg, cmd_next;
 
@@ -62,6 +64,7 @@ always @(posedge clk_i, negedge rst_ni) begin
       freq_buf_reg <= 0;
       ctrl_reg     <= 0;
       period_reg   <= 0;
+      repeat_reg   <= 0;
       count_reg    <= 0;
       cmd_reg      <= 0;
     end
@@ -72,6 +75,7 @@ always @(posedge clk_i, negedge rst_ni) begin
       freq_buf_reg <= freq_buf_next;
       ctrl_reg     <= ctrl_next;
       period_reg   <= period_next;
+      repeat_reg   <= repeat_next;
       count_reg    <= count_next;
       cmd_reg      <= cmd_next;
     end
@@ -84,6 +88,7 @@ always @(*) begin
   freq_buf_next    = freq_buf_reg;
   ctrl_next        = ctrl_reg;
   period_next      = period_reg;
+  repeat_next      = repeat_reg;
   count_next       = count_reg;
   cmd_next         = cmd_reg;
   done_tick_o      = 0;
@@ -94,6 +99,7 @@ always @(*) begin
   sel_out_o        = 0;
   slow_period_o    = 0;
   fast_period_o    = 0;
+  repeat_o         = 0;
   cmd_o            = 0;
 
   case (state_reg)
@@ -110,6 +116,8 @@ always @(*) begin
             state_next = S_PERIOD;
           else if (cmd_next == `CMD_CTRL)
             state_next = S_CTRL;
+          else if (cmd_next == `CMD_REPEAT)
+            state_next = S_REPEAT;
           else
             state_next = S_IDLE;
         end
@@ -145,6 +153,19 @@ always @(*) begin
       if (rx_done_tick_i)
         begin
           ctrl_next = {data_i, ctrl_reg[15:8]};
+          count_next = count_reg + 1'b1;
+        end
+      else if (count_reg == 2)
+        begin
+          count_next = 0;
+          state_next = S_DONE;
+        end
+    end
+
+    S_REPEAT: begin
+      if (rx_done_tick_i)
+        begin
+          repeat_next = {data_i, repeat_reg[15:8]};
           count_next = count_reg + 1'b1;
         end
       else if (count_reg == 2)
@@ -190,6 +211,11 @@ always @(*) begin
           sel_out_o = ctrl_reg[7:0];
           mode_o = ctrl_reg[10:9];
           enable_o = ctrl_reg[8];
+        end
+      else if (cmd_reg == `CMD_REPEAT)
+        begin
+          sel_out_o = repeat_reg[7:0];
+          repeat_o = repeat_reg[15:8];
         end
     end
 
