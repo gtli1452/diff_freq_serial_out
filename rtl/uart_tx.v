@@ -83,7 +83,7 @@ always @(*) begin
       tx_next = 1'b0;
       if (sample_tick_i)
         begin
-          if (tick_count_reg == 15)
+          if (tick_count_reg == 4'hF)
             begin
               state_next      = S_DATA;
               tick_count_next = 0;
@@ -99,7 +99,7 @@ always @(*) begin
       tx_next = data_buf_reg[0]; // transmit LSB first
       if (sample_tick_i)
       begin
-        if (tick_count_reg == 15)
+        if (tick_count_reg == 4'hF)
           begin
             tick_count_next = 0;
             data_buf_next   = data_buf_reg >> 1;
@@ -118,7 +118,7 @@ always @(*) begin
       tx_next = 1'b1;
       if (sample_tick_i)
         begin
-          if (tick_count_reg == ((STOP_TICK - 1) / 2))
+          if (tick_count_reg == ((STOP_TICK - 1'b1) >> 1))
             begin
               state_next     = S_IDLE;
               tx_done_tick_o = 1'b1;

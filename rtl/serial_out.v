@@ -123,7 +123,7 @@ module serial_out #(
           state_next = S_UPDATE;
         else if (count_reg == 0)
           begin
-            if (data_bit_reg == (DATA_BIT - 1))
+            if (data_bit_reg == (DATA_BIT - 1'b1))
               state_next = S_DONE;
             else
               data_bit_next = data_bit_reg + 1'b1;
@@ -139,7 +139,7 @@ module serial_out #(
 
       S_DONE: begin
         output_next = IDLE;
-        done_tick_next = 1;
+        done_tick_next = 1'b1;
 
         if (mode_reg == CONTINUE)
           state_next = S_UPDATE;

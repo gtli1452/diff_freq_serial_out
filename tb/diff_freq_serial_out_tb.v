@@ -136,7 +136,7 @@ task UART_WRITE_BYTE;
     #(`UART_BIT_PERIOD);
 
     //Send Data Byte
-    for (i = 0; i < `UART_DATA_BIT; i = i + 1)
+    for (i = 0; i < `UART_DATA_BIT; i = i + 1'b1)
       begin
         tb_RxSerial = WRITE_DATA[i];
         #(`UART_BIT_PERIOD);
@@ -175,7 +175,7 @@ task UPDATE_FREQ;
     // command
     UART_WRITE_BYTE(`CMD_FREQ);
     // freq pattern
-    for (i = 0; i < 4; i = i + 1)
+    for (i = 0; i < 4; i = i + 1'b1)
       begin
         UART_WRITE_BYTE(freq_pattern[7:0]); // transmit LSB first
         freq_pattern = freq_pattern[31:8];  // right-shift 8-bit

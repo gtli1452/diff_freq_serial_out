@@ -125,7 +125,7 @@ module decoder_tb ();
       #(`UART_BIT_PERIOD);
 
       //Send Data Byte
-      for (i = 0; i < `UART_DATA_BIT; i = i + 1)
+      for (i = 0; i < `UART_DATA_BIT; i = i + 1'b1)
         begin
           tb_RxSerial = WRITE_DATA[i];
           #(`UART_BIT_PERIOD);
@@ -147,7 +147,7 @@ module decoder_tb ();
       // channel index
       UART_WRITE_BYTE(channel);
       // data pattern
-      for (i = 0; i < 4; i = i+1)
+      for (i = 0; i < 4; i = i + 1'b1)
         begin
           UART_WRITE_BYTE(data[7:0]);
           data = data[31:8];
@@ -162,7 +162,7 @@ module decoder_tb ();
       // command
       UART_WRITE_BYTE(`CMD_FREQ);
       // freq pattern
-      for (i = 0; i < 4; i = i+1)
+      for (i = 0; i < 4; i = i + 1'b1)
         begin
           UART_WRITE_BYTE(freq[7:0]);
           freq = freq[31:8];

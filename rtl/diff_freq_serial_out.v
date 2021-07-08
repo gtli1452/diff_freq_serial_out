@@ -115,7 +115,7 @@ always @(posedge clk_i,  negedge rst_ni) begin
       channel_enable  <= channel_enable_next;
       channel_stop    <= channel_stop_next;
       
-      for (i = 0; i < OUTPUT_NUM; i = i + 1)
+      for (i = 0; i < OUTPUT_NUM; i = i + 1'b1)
         begin
           channel_mode[i] <= channel_mode_next[i];
           channel_repeat[i] <= channel_repeat_next[i];
@@ -141,7 +141,7 @@ always @(*) begin
   channel_stop_next = channel_stop;
   update_tick = 0;
   
-  for (i = 0; i < OUTPUT_NUM; i = i + 1)
+  for (i = 0; i < OUTPUT_NUM; i = i + 1'b1)
     begin
       channel_mode_next[i] = channel_mode[i];
       channel_repeat_next[i] = channel_repeat[i];
@@ -190,7 +190,7 @@ always @(*) begin
     end
 
     S_CTRL: begin
-      if (sel_out_reg == OUTPUT_NUM - 1)
+      if (sel_out_reg == OUTPUT_NUM - 1'b1)
         state_next = S_DONE;
       else
         state_next = S_IDLE;
@@ -207,7 +207,7 @@ always @(*) begin
 
     S_DONE: begin
       state_next  = S_IDLE;
-      update_tick = 1;
+      update_tick = 1'b1;
     end
 
     default: state_next = S_IDLE;
@@ -237,7 +237,7 @@ decoder #(
 
 // Use generate loop to create instances
 genvar j;
-generate for (j = 0; j < OUTPUT_NUM; j = j + 1)
+generate for (j = 0; j < OUTPUT_NUM; j = j + 1'b1)
   begin: serial_out_entity
     serial_out #(
     .DATA_BIT          (DATA_BIT)

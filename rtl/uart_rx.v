@@ -44,7 +44,7 @@ always @(posedge clk_i, negedge rst_ni) begin
       tick_count_reg <= 0;
       data_count_reg <= 0;
       data_buf_reg   <= 0;
-      rx_reg         <= 1;
+      rx_reg         <= 1'b1;
     end
   else
     begin
@@ -79,7 +79,7 @@ always @(*) begin
     S_START: begin
       if (sample_tick_i)
         begin
-          if (tick_count_reg == 7) // sample the middle of start bit (16 ticks per bit)
+          if (tick_count_reg == 4'h7) // sample the middle of start bit (16 ticks per bit)
             begin
               if (~rx_reg) // check rx is low at START bit
                 begin
@@ -99,11 +99,11 @@ always @(*) begin
     S_DATA: begin
       if (sample_tick_i)
         begin
-          if (tick_count_reg == 15)
+          if (tick_count_reg == 4'hF)
             begin
               tick_count_next = 0;
               data_buf_next   = {rx_reg, data_buf_reg[7:1]}; // right-shit 1-bit
-              if (data_count_reg == (DATA_BITS - 1))
+              if (data_count_reg == (DATA_BITS - 1'b1))
                 state_next = S_STOP;
               else
                 data_count_next = data_count_reg + 1'b1;
@@ -117,7 +117,7 @@ always @(*) begin
     S_STOP: begin
       if (sample_tick_i)
         begin
-          if (tick_count_reg == (STOP_TICK - 1))
+          if (tick_count_reg == (STOP_TICK - 1'b1))
             begin
               state_next     = S_IDLE;
               rx_done_tick_o = 1'b1;

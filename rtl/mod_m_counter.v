@@ -31,9 +31,9 @@ module mod_m_counter #(
   end
 
   /* Next-state logic */
-  assign count_next = (count_reg == (MOD - 1)) ? {(MOD_BIT){1'b0}} : count_reg + 1'b1;
+  assign count_next = (count_reg == MOD - 1'b1) ? {MOD_BIT{1'b0}} : count_reg + 1'b1;
   
   /* Output */
-  assign max_tick_o = (count_reg == (MOD-1)) ? 1'b1 : 1'b0;
+  assign max_tick_o = (count_reg == MOD - 1'b1) ? 1'b1 : 1'b0;
 
 endmodule

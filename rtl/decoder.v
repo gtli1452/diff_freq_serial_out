@@ -155,7 +155,7 @@ always @(*) begin
           ctrl_next = {data_i, ctrl_reg[15:8]};
           count_next = count_reg + 1'b1;
         end
-      else if (count_reg == 2)
+      else if (count_reg == 8'h02)
         begin
           count_next = 0;
           state_next = S_DONE;
@@ -168,7 +168,7 @@ always @(*) begin
           repeat_next = {data_i, repeat_reg[15:8]};
           count_next = count_reg + 1'b1;
         end
-      else if (count_reg == 2)
+      else if (count_reg == 8'h02)
         begin
           count_next = 0;
           state_next = S_DONE;
@@ -189,7 +189,7 @@ always @(*) begin
     end
 
     S_DONE: begin
-      done_tick_o = 1;
+      done_tick_o = 1'b1;
       cmd_o = cmd_reg;
       state_next = S_IDLE;
       if (cmd_reg == `CMD_DATA)
