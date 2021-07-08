@@ -22,18 +22,19 @@ module serial_out #(
   output                done_tick_o
 );
 
-  // Define the states
+  /* State declaration */
   localparam [1:0] S_IDLE     = 2'b00;
   localparam [1:0] S_UPDATE   = 2'b01;
   localparam [1:0] S_ONE_SHOT = 2'b10;
   localparam [1:0] S_DONE     = 2'b11;
 
+  /* Parameter declaration */
   localparam IDLE     = 1'b0;
   localparam ONE_SHOT = 2'b00;
   localparam CONTINUE = 2'b01;
   localparam REPEAT   = 2'b10;
 
-  // Signal declaration
+  /* Signal declaration */
   reg [1:0]          state_reg,     state_next;
   reg [1:0]          mode_reg,      mode_next;
   reg                output_reg,    output_next;
@@ -46,8 +47,8 @@ module serial_out #(
   reg [7:0]          count_reg,     count_next;
   reg                done_tick_reg, done_tick_next;
 
-  // Body
-  // FSMD state & data registers
+  /* Body */
+  /* FSMD state & data registers */
   always @(posedge clk_i, negedge rst_ni) begin
     if (~rst_ni)
       begin
@@ -161,8 +162,8 @@ module serial_out #(
     endcase
   end
 
-  // Output
+  /* Output */
   assign serial_out_o = output_reg;
-  assign done_tick_o  = done_tick_reg;
+  assign done_tick_o = done_tick_reg;
 
 endmodule

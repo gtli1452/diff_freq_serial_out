@@ -32,79 +32,79 @@ module diff_freq_serial_out_test (
   output pll_locked_o    // PIN_R16
 );
 
-// Signal declaration
-reg         rst_n_reg, rst_n_next; // synchronous reset
-wire        clk_pll;
-wire [7:0]  rx_received_data;
-wire        rx_done_tick, tx_done_tick;
-wire [15:0] serial_out;
+  // Signal declaration
+  reg         rst_n_reg, rst_n_next; // synchronous reset
+  wire        clk_pll;
+  wire [7:0]  rx_received_data;
+  wire        rx_done_tick, tx_done_tick;
+  wire [15:0] serial_out;
 
-assign serial_out0_o  = serial_out[0];
-assign serial_out1_o  = serial_out[1];
-assign serial_out2_o  = serial_out[2];
-assign serial_out3_o  = serial_out[3];
-assign serial_out4_o  = serial_out[4];
-assign serial_out5_o  = serial_out[5];
-assign serial_out6_o  = serial_out[6];
-assign serial_out7_o  = serial_out[7];
-assign serial_out8_o  = serial_out[8];
-assign serial_out9_o  = serial_out[9];
-assign serial_out10_o = serial_out[10];
-assign serial_out11_o = serial_out[11];
-assign serial_out12_o = serial_out[12];
-assign serial_out13_o = serial_out[13];
-assign serial_out14_o = serial_out[14];
-assign serial_out15_o = serial_out[15];
+  assign serial_out0_o  = serial_out[0];
+  assign serial_out1_o  = serial_out[1];
+  assign serial_out2_o  = serial_out[2];
+  assign serial_out3_o  = serial_out[3];
+  assign serial_out4_o  = serial_out[4];
+  assign serial_out5_o  = serial_out[5];
+  assign serial_out6_o  = serial_out[6];
+  assign serial_out7_o  = serial_out[7];
+  assign serial_out8_o  = serial_out[8];
+  assign serial_out9_o  = serial_out[9];
+  assign serial_out10_o = serial_out[10];
+  assign serial_out11_o = serial_out[11];
+  assign serial_out12_o = serial_out[12];
+  assign serial_out13_o = serial_out[13];
+  assign serial_out14_o = serial_out[14];
+  assign serial_out15_o = serial_out[15];
 
-// Data register
-always @(posedge clk_i) begin
-  rst_n_reg <= rst_n_next;
-end
+  // Data register
+  always @(posedge clk_i) begin
+    rst_n_reg <= rst_n_next;
+  end
 
-// Next-state logic
-always @(*) begin
-  rst_n_next = rst_ni;
-end
+  // Next-state logic
+  always @(*) begin
+    rst_n_next = rst_ni;
+  end
 
-// PLL IP
-pll pll_100M (
-  .refclk  (clk_i),
-  .rst     (~rst_n_reg), // positive-edge reset
-  .outclk_0(clk_pll),
-  .locked  (pll_locked_o)
-);
+  // PLL IP
+  pll pll_100M (
+    .refclk  (clk_i),
+    .rst     (~rst_n_reg), // positive-edge reset
+    .outclk_0(clk_pll),
+    .locked  (pll_locked_o)
+  );
 
-diff_freq_serial_out #(
-  .DATA_BIT      (`DATA_BIT),
-  .PACK_NUM      (`PACK_NUM),
-  .OUTPUT_NUM    (`OUTPUT_NUM),
-  .SLOW_PERIOD   (`DEFAULT_SLOW_PERIOD),
-  .FAST_PERIOD   (`DEFAULT_FAST_PERIOD)
-) DUT (
-  .clk_i         (clk_pll),
-  .rst_ni        (rst_n_reg),
-  .data_i        (rx_received_data),
-  .rx_done_tick_i(rx_done_tick),
-  .serial_out_o  (serial_out)
-);
+  diff_freq_serial_out #(
+    .DATA_BIT      (`DATA_BIT),
+    .PACK_NUM      (`PACK_NUM),
+    .OUTPUT_NUM    (`OUTPUT_NUM),
+    .SLOW_PERIOD   (`DEFAULT_SLOW_PERIOD),
+    .FAST_PERIOD   (`DEFAULT_FAST_PERIOD)
+  ) DUT (
+    .clk_i         (clk_pll),
+    .rst_ni        (rst_n_reg),
+    .data_i        (rx_received_data),
+    .rx_done_tick_i(rx_done_tick),
+    .serial_out_o  (serial_out)
+  );
 
-UART #(
-  .SYS_CLK       (`SYS_CLK),
-  .BAUD_RATE     (`BAUD_RATE),
-  .DATA_BITS     (`UART_DATA_BIT),
-  .STOP_BIT      (`UART_STOP_BIT)
-) DUT_uart (
-  .clk_i         (clk_pll),
-  .rst_ni        (rst_n_reg),
-  //rx interface
-  .rx_i          (rx_i),
-  .rx_done_tick_o(rx_done_tick),
-  .rx_data_o     (rx_received_data),
-  //tx interface
-  .tx_start_i    (rx_done_tick),
-  .tx_data_i     (rx_received_data),
-  .tx_o          (tx_o),
-  .tx_done_tick_o(tx_done_tick)
-);
+  UART #(
+    .SYS_CLK       (`SYS_CLK),
+    .BAUD_RATE     (`BAUD_RATE),
+    .DATA_BITS     (`UART_DATA_BIT),
+    .STOP_BIT      (`UART_STOP_BIT)
+  ) DUT_uart (
+    .clk_i         (clk_pll),
+    .rst_ni        (rst_n_reg),
+    //rx interface
+    .rx_i          (rx_i),
+    .rx_done_tick_o(rx_done_tick),
+    .rx_data_o     (rx_received_data),
+    //tx interface
+    .tx_start_i    (rx_done_tick),
+    .tx_data_i     (rx_received_data),
+    .tx_o          (tx_o),
+    .tx_done_tick_o(tx_done_tick)
+  );
 
 endmodule
