@@ -144,7 +144,7 @@ module serial_out #(
         if (mode_reg == CONTINUE)
           state_next = S_UPDATE;
         else if (mode_reg == REPEAT)
-          if (repeat_reg >= (repeat_i - 1))
+          if (repeat_reg + 1'b1 >= repeat_i)
             begin
               state_next = S_IDLE;
               repeat_next = 0;
