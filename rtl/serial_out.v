@@ -12,6 +12,7 @@ module serial_out #(
   input                 rst_ni,
   input                 enable_i,
   input                 stop_i,
+  input                 idle_i,
   input  [1:0]          mode_i,        // b00:one-shot, b01:repeat, b10:repeat n_times
   input  [DATA_BIT-1:0] output_pattern_i,
   input  [DATA_BIT-1:0] freq_pattern_i,
@@ -96,7 +97,7 @@ module serial_out #(
 
     case (state_reg)
       S_IDLE: begin
-        output_next = IDLE;
+        output_next = idle_i;
         if (enable_i)
           state_next = S_UPDATE; // load the input data
       end
@@ -139,7 +140,7 @@ module serial_out #(
       end
 
       S_DONE: begin
-        output_next = IDLE;
+        output_next = idle_i;
         done_tick_next = 1'b1;
 
         if (mode_reg == CONTINUE)

@@ -16,6 +16,8 @@ module decoder_tb ();
   localparam REPEAT_MODE   = 2'b10;
   localparam DISABLE       = 1'b0;
   localparam ENABLE        = 1'b1;
+  localparam IDLE_LOW      = 1'b0;
+  localparam IDLE_HIGH     = 1'b1;
 
   // Signal declaration
   reg clk;
@@ -35,6 +37,7 @@ module decoder_tb ();
   wire [7:0]           sel_out_o;
   wire [1:0]           mode_o;
   wire                 stop_o;
+  wire                 idle_o;
   wire                 enable_o;
   wire [`DATA_BIT-1:0] freq_pattern_o;
   wire [7:0]           slow_period_o;
@@ -72,6 +75,7 @@ module decoder_tb ();
     .mode_o          (mode_o),
     .enable_o        (enable_o),
     .stop_o          (stop_o),
+    .idle_o          (idle_o),
     .slow_period_o   (slow_period_o),
     .fast_period_o   (fast_period_o),
     .repeat_o        (repeat_o),
@@ -112,7 +116,7 @@ module decoder_tb ();
     UPDATE_FREQ(freq_pattern);
     UPDATE_DATA(channel, data_pattern);
     UPDATE_REPEAT(channel, repeat_times);
-    UPDATE_CTRL(channel, CONTINUE_MODE, ENABLE);
+    UPDATE_CTRL(channel, IDLE_HIGH, CONTINUE_MODE, ENABLE);
   end
 
   //To check RX module
@@ -183,13 +187,14 @@ module decoder_tb ();
 
   task UPDATE_CTRL;
     input [7:0] channel;
+    input idle;
     input [1:0] mode;
     input en;
     begin
       // command
       UART_WRITE_BYTE(`CMD_CTRL);
       UART_WRITE_BYTE(channel);
-      UART_WRITE_BYTE({5'h0, mode, en});
+      UART_WRITE_BYTE({4'h0, idle, mode, en});
     end
   endtask
 

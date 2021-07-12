@@ -22,6 +22,7 @@ module decoder #(
   output reg [7:0]          sel_out_o,
   output reg                enable_o,
   output                    stop_o,
+  output reg                idle_o,
   output reg [1:0]          mode_o,
   output reg [7:0]          slow_period_o,
   output reg [7:0]          fast_period_o,
@@ -96,6 +97,7 @@ module decoder #(
     output_pattern_o = 0;
     freq_pattern_o   = 0;
     enable_o         = 0;
+    idle_o           = 0;
     mode_o           = 0;
     sel_out_o        = 0;
     slow_period_o    = 0;
@@ -210,8 +212,9 @@ module decoder #(
         else if (cmd_reg == `CMD_CTRL)
           begin
             sel_out_o = ctrl_reg[7:0];
-            mode_o = ctrl_reg[10:9];
             enable_o = ctrl_reg[8];
+            mode_o = ctrl_reg[10:9];
+            idle_o = ctrl_reg[11];
           end
         else if (cmd_reg == `CMD_REPEAT)
           begin

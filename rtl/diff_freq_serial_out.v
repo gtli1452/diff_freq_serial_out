@@ -36,6 +36,7 @@ module diff_freq_serial_out #(
   reg [7:0]          sel_out_reg, sel_out_next;
   reg                enable_reg,  enable_next;
   reg                stop_reg,    stop_next;
+  reg                idle_reg,    idle_next;
   reg [1:0]          mode_reg,    mode_next;
   reg [7:0]          slow_period_reg, slow_period_next;
   reg [7:0]          fast_period_reg, fast_period_next;
@@ -48,6 +49,7 @@ module diff_freq_serial_out #(
   wire [7:0]          decode_sel_out;
   wire                decode_enable;
   wire                decode_stop;
+  wire                decode_idle;
   wire [1:0]          decode_mode;
   wire [7:0]          decode_slow_period;
   wire [7:0]          decode_fast_period;
@@ -60,6 +62,7 @@ module diff_freq_serial_out #(
   reg [DATA_BIT-1:0]   channel_output_next[OUTPUT_NUM-1:0];
   reg [OUTPUT_NUM-1:0] channel_enable, channel_enable_next;
   reg [OUTPUT_NUM-1:0] channel_stop,  channel_stop_next;
+  reg [OUTPUT_NUM-1:0] channel_idle,  channel_idle_next;
   reg [1:0]            channel_mode[OUTPUT_NUM-1:0];
   reg [1:0]            channel_mode_next[OUTPUT_NUM-1:0];
   reg [7:0]            channel_repeat[OUTPUT_NUM-1:0];
@@ -83,6 +86,7 @@ module diff_freq_serial_out #(
         sel_out_reg     <= 0;
         enable_reg      <= 0;
         stop_reg        <= 0;
+        idle_reg        <= 0;
         mode_reg        <= 0;
         freq_reg        <= 0;
         slow_period_reg <= SLOW_PERIOD; // 5MHz
@@ -91,6 +95,7 @@ module diff_freq_serial_out #(
         // control bit pattern
         channel_enable  <= 0;
         channel_stop    <= 0;
+        channel_idle    <= 0;
 
         for (i = 0; i < OUTPUT_NUM; i = i + 1)
           begin
@@ -106,6 +111,7 @@ module diff_freq_serial_out #(
         sel_out_reg     <= sel_out_next;
         enable_reg      <= enable_next;
         stop_reg        <= stop_next;
+        idle_reg        <= idle_next;
         mode_reg        <= mode_next;
         freq_reg        <= freq_next;
         slow_period_reg <= slow_period_next;
@@ -114,6 +120,7 @@ module diff_freq_serial_out #(
         // control bit pattern
         channel_enable  <= channel_enable_next;
         channel_stop    <= channel_stop_next;
+        channel_idle    <= channel_idle_next;
         
         for (i = 0; i < OUTPUT_NUM; i = i + 1'b1)
           begin
@@ -132,6 +139,7 @@ module diff_freq_serial_out #(
     sel_out_next     = sel_out_reg;
     enable_next      = enable_reg;
     stop_next        = stop_reg;
+    idle_next        = idle_reg;
     mode_next        = mode_reg;
     freq_next        = freq_reg;
     slow_period_next = slow_period_reg;
@@ -140,6 +148,7 @@ module diff_freq_serial_out #(
     // control bit pattern
     channel_enable_next = channel_enable;
     channel_stop_next = channel_stop;
+    channel_idle_next = channel_idle;
     update_tick = 0;
     
     for (i = 0; i < OUTPUT_NUM; i = i + 1'b1)
@@ -174,6 +183,7 @@ module diff_freq_serial_out #(
                 enable_next = decode_enable;
                 stop_next = decode_stop;
                 mode_next = decode_mode;
+                idle_next = decode_idle;
                 state_next = S_CTRL;
               end
             else if (decode_cmd == `CMD_REPEAT)
@@ -198,6 +208,7 @@ module diff_freq_serial_out #(
 
         channel_enable_next[sel_out_reg] = enable_reg;
         channel_stop_next[sel_out_reg] = stop_reg;
+        channel_idle_next[sel_out_reg] = idle_reg;
         channel_mode_next[sel_out_reg] = mode_reg;
       end
 
@@ -228,6 +239,7 @@ module diff_freq_serial_out #(
     .sel_out_o       (decode_sel_out),
     .enable_o        (decode_enable),
     .stop_o          (decode_stop),
+    .idle_o          (decode_idle),
     .mode_o          (decode_mode),
     .slow_period_o   (decode_slow_period),
     .fast_period_o   (decode_fast_period),
@@ -247,6 +259,7 @@ module diff_freq_serial_out #(
         .rst_ni          (rst_ni),
         .enable_i        (enable_tick[j]),
         .stop_i          (channel_stop[j]),
+        .idle_i          (channel_idle[j]),
         .mode_i          (channel_mode[j]), // one-shot, repeat
         .output_pattern_i(channel_output[j]),
         .freq_pattern_i  (freq_reg),
