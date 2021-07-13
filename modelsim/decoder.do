@@ -42,9 +42,8 @@ vsim -lib diff_freq_serial_out_lib decoder_tb
 
 add wave -HEXADECIMAL sim:/decoder_tb/*
 add wave -HEXADECIMAL sim:/decoder_tb/decoder_dut/state_reg
+add wave -HEXADECIMAL sim:/decoder_tb/decoder_dut/data_buf_reg
 add wave -HEXADECIMAL sim:/decoder_tb/decoder_dut/freq_buf_reg
-add wave -HEXADECIMAL sim:/decoder_tb/decoder_dut/freq_num_reg
-add wave -HEXADECIMAL sim:/decoder_tb/decoder_dut/pack_num_reg
 add wave -HEXADECIMAL sim:/decoder_tb/decoder_dut/cmd_reg
 
 run 1.5ms
