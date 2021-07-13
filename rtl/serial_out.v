@@ -48,6 +48,8 @@ module serial_out #(
   reg [7:0]          count_reg,     count_next;
   reg                done_tick_reg, done_tick_next;
 
+  wire enable = enable_i & ~stop_i;
+
   /* Body */
   /* FSMD state & data registers */
   always @(posedge clk_i, negedge rst_ni) begin
@@ -98,7 +100,7 @@ module serial_out #(
     case (state_reg)
       S_IDLE: begin
         output_next = idle_i;
-        if (enable_i)
+        if (enable)
           state_next = S_UPDATE; // load the input data
       end
 
@@ -121,7 +123,7 @@ module serial_out #(
         output_next = data_buf_reg[data_bit_reg]; // transmit lsb first
         if (stop_i)
           state_next = S_IDLE;
-        else if (enable_i)
+        else if (enable)
           state_next = S_UPDATE;
         else if (count_reg == 0)
           begin

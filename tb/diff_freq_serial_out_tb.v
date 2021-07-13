@@ -107,6 +107,7 @@ module diff_freq_serial_out_tb ();
     UPDATE_FREQ(freq_pattern);
     UPDATE_PERIOD(slow_period, fast_period);
     UPDATE_REPEAT(15, 3);
+    UPDATE_GLOBAL(1);
     UPDATE_DATA(0,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
     UPDATE_DATA(1,  IDLE_LOW, REPEAT_MODE, ENABLE);
     UPDATE_DATA(2,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
@@ -204,6 +205,15 @@ module diff_freq_serial_out_tb ();
       UART_WRITE_BYTE(`CMD_REPEAT);
       UART_WRITE_BYTE(channel);
       UART_WRITE_BYTE(repeat_times);
+    end
+  endtask
+
+  task UPDATE_GLOBAL;
+    input stop;
+    begin
+      // command
+      UART_WRITE_BYTE(`CMD_GLOBAL);
+      UART_WRITE_BYTE({7'h0, stop});
     end
   endtask
 

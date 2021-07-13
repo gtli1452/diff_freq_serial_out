@@ -21,7 +21,7 @@ module decoder #(
   output reg [DATA_BIT-1:0] freq_pattern_o,
   output reg [7:0]          sel_out_o,
   output reg                enable_o,
-  output                    stop_o,
+  output reg                stop_o,
   output reg                idle_o,
   output reg [1:0]          mode_o,
   output reg [7:0]          slow_period_o,
@@ -53,6 +53,7 @@ module decoder #(
   reg [15:0]         ctrl_reg, ctrl_next;
   reg [15:0]         period_reg, period_next; // slow_period + fast_period
   reg [15:0]         repeat_reg, repeat_next;
+  reg [7:0]          global_reg, global_next;
   reg [7:0]          count_reg, count_next;
   reg [7:0]          cmd_reg, cmd_next;
 
@@ -67,6 +68,7 @@ module decoder #(
         ctrl_reg     <= 0;
         period_reg   <= 0;
         repeat_reg   <= 0;
+        global_reg   <= 0;
         count_reg    <= 0;
         cmd_reg      <= 0;
       end
@@ -78,6 +80,7 @@ module decoder #(
         ctrl_reg     <= ctrl_next;
         period_reg   <= period_next;
         repeat_reg   <= repeat_next;
+        global_reg   <= global_next;
         count_reg    <= count_next;
         cmd_reg      <= cmd_next;
       end
@@ -91,12 +94,14 @@ module decoder #(
     ctrl_next        = ctrl_reg;
     period_next      = period_reg;
     repeat_next      = repeat_reg;
+    global_next      = global_reg;
     count_next       = count_reg;
     cmd_next         = cmd_reg;
     done_tick_o      = 0;
     output_pattern_o = 0;
     freq_pattern_o   = 0;
     enable_o         = 0;
+    stop_o           = 0;
     idle_o           = 0;
     mode_o           = 0;
     sel_out_o        = 0;
@@ -110,7 +115,7 @@ module decoder #(
         count_next = 0;
         if (rx_done_tick_i)
           begin
-            cmd_next = data_i; // load rx data in MSB of data buffer
+            cmd_next = data_i;
             if (cmd_next == `CMD_DATA)
               state_next = S_DATA;
             else if (cmd_next == `CMD_FREQ)
@@ -121,6 +126,8 @@ module decoder #(
               state_next = S_CTRL;
             else if (cmd_next == `CMD_REPEAT)
               state_next = S_REPEAT;
+            else if (cmd_next == `CMD_GLOBAL)
+              state_next = S_GLOBAL;
             else
               state_next = S_IDLE;
           end
@@ -178,6 +185,14 @@ module decoder #(
           end
       end
 
+      S_GLOBAL: begin
+        if (rx_done_tick_i)
+          begin
+            global_next = data_i;
+            state_next = S_DONE;
+          end
+      end
+
       S_DATA: begin
         if (rx_done_tick_i)
           begin
@@ -221,6 +236,10 @@ module decoder #(
             sel_out_o = repeat_reg[7:0];
             repeat_o = repeat_reg[15:8];
           end
+        else if (cmd_reg == `CMD_GLOBAL)
+          begin
+            stop_o = global_reg[0];
+          end
       end
 
       default: state_next = S_IDLE;
@@ -228,6 +247,5 @@ module decoder #(
   end
 
   /* Output logic */
-  assign stop_o = ~enable_o;
 
 endmodule

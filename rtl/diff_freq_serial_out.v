@@ -181,7 +181,6 @@ module diff_freq_serial_out #(
               begin
                 sel_out_next = decode_sel_out;
                 enable_next = decode_enable;
-                stop_next = decode_stop;
                 mode_next = decode_mode;
                 idle_next = decode_idle;
                 state_next = S_CTRL;
@@ -191,6 +190,10 @@ module diff_freq_serial_out #(
                 sel_out_next = decode_sel_out;
                 repeat_next = decode_repeat;
                 state_next = S_REPEAT;
+              end
+            else if (decode_cmd == `CMD_GLOBAL)
+              begin
+                stop_next = decode_stop;
               end
           end
       end
@@ -258,7 +261,7 @@ module diff_freq_serial_out #(
         .clk_i           (clk_i),
         .rst_ni          (rst_ni),
         .enable_i        (enable_tick[j]),
-        .stop_i          (channel_stop[j]),
+        .stop_i          (stop_reg),
         .idle_i          (channel_idle[j]),
         .mode_i          (channel_mode[j]), // one-shot, repeat
         .output_pattern_i(channel_output[j]),
