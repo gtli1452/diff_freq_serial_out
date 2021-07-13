@@ -61,7 +61,6 @@ module diff_freq_serial_out #(
   reg [DATA_BIT-1:0]   channel_output[OUTPUT_NUM-1:0];
   reg [DATA_BIT-1:0]   channel_output_next[OUTPUT_NUM-1:0];
   reg [OUTPUT_NUM-1:0] channel_enable, channel_enable_next;
-  reg [OUTPUT_NUM-1:0] channel_stop,  channel_stop_next;
   reg [OUTPUT_NUM-1:0] channel_idle,  channel_idle_next;
   reg [1:0]            channel_mode[OUTPUT_NUM-1:0];
   reg [1:0]            channel_mode_next[OUTPUT_NUM-1:0];
@@ -94,7 +93,6 @@ module diff_freq_serial_out #(
         repeat_reg      <= 0;
         // control bit pattern
         channel_enable  <= 0;
-        channel_stop    <= 0;
         channel_idle    <= 0;
 
         for (i = 0; i < OUTPUT_NUM; i = i + 1)
@@ -119,7 +117,6 @@ module diff_freq_serial_out #(
         repeat_reg      <= repeat_next;
         // control bit pattern
         channel_enable  <= channel_enable_next;
-        channel_stop    <= channel_stop_next;
         channel_idle    <= channel_idle_next;
         
         for (i = 0; i < OUTPUT_NUM; i = i + 1'b1)
@@ -147,7 +144,6 @@ module diff_freq_serial_out #(
     repeat_next      = repeat_reg;
     // control bit pattern
     channel_enable_next = channel_enable;
-    channel_stop_next = channel_stop;
     channel_idle_next = channel_idle;
     update_tick = 0;
     
@@ -210,7 +206,6 @@ module diff_freq_serial_out #(
           state_next = S_IDLE;
 
         channel_enable_next[sel_out_reg] = enable_reg;
-        channel_stop_next[sel_out_reg] = stop_reg;
         channel_idle_next[sel_out_reg] = idle_reg;
         channel_mode_next[sel_out_reg] = mode_reg;
       end

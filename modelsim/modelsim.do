@@ -56,6 +56,6 @@ add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/serial_out_en
 add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/serial_out_entity[15]/channel/repeat_i
 add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/serial_out_entity[15]/channel/state_reg
 
-run 6.05ms
-wave zoom range 6.04ms 6.05ms
+run 6.126ms
+wave zoom range 6.12ms 6.126ms
 #q
