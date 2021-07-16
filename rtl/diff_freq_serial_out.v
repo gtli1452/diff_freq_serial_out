@@ -26,7 +26,8 @@ module diff_freq_serial_out #(
   localparam [2:0] S_DATA   = 3'b001;
   localparam [2:0] S_CTRL   = 3'b010;
   localparam [2:0] S_REPEAT = 3'b011;
-  localparam [2:0] S_DONE   = 3'b100;
+  localparam [2:0] S_RUN    = 3'b100;
+  localparam [2:0] S_DONE   = 3'b101;
 
   /* Signal declaration */
   // to load the decoder output
@@ -35,7 +36,7 @@ module diff_freq_serial_out #(
   reg [DATA_BIT-1:0] freq_reg,    freq_next;
   reg [7:0]          sel_out_reg, sel_out_next;
   reg                enable_reg,  enable_next;
-  reg                stop_reg,    stop_next;
+  reg                run_reg,    run_next;
   reg                idle_reg,    idle_next;
   reg [1:0]          mode_reg,    mode_next;
   reg [7:0]          slow_period_reg, slow_period_next;
@@ -48,7 +49,7 @@ module diff_freq_serial_out #(
   wire [DATA_BIT-1:0] decode_freq;
   wire [7:0]          decode_sel_out;
   wire                decode_enable;
-  wire                decode_stop;
+  wire                decode_run;
   wire                decode_idle;
   wire [1:0]          decode_mode;
   wire [7:0]          decode_slow_period;
@@ -72,6 +73,9 @@ module diff_freq_serial_out #(
   wire [OUTPUT_NUM-1:0] enable_tick;
   assign enable_tick = channel_enable & {OUTPUT_NUM{update_tick}};
 
+  // Stop signal for serial_out module
+  wire stop = ~run_reg;
+
   // for loop variable
   integer i;
 
@@ -84,7 +88,7 @@ module diff_freq_serial_out #(
         output_reg      <= 0;
         sel_out_reg     <= 0;
         enable_reg      <= 0;
-        stop_reg        <= 0;
+        run_reg         <= 0;
         idle_reg        <= 0;
         mode_reg        <= 0;
         freq_reg        <= 0;
@@ -108,7 +112,7 @@ module diff_freq_serial_out #(
         output_reg      <= output_next;
         sel_out_reg     <= sel_out_next;
         enable_reg      <= enable_next;
-        stop_reg        <= stop_next;
+        run_reg         <= run_next;
         idle_reg        <= idle_next;
         mode_reg        <= mode_next;
         freq_reg        <= freq_next;
@@ -135,7 +139,7 @@ module diff_freq_serial_out #(
     output_next      = output_reg;
     sel_out_next     = sel_out_reg;
     enable_next      = enable_reg;
-    stop_next        = stop_reg;
+    run_next         = run_reg;
     idle_next        = idle_reg;
     mode_next        = mode_reg;
     freq_next        = freq_reg;
@@ -189,7 +193,8 @@ module diff_freq_serial_out #(
               end
             else if (decode_cmd == `CMD_GLOBAL)
               begin
-                stop_next = decode_stop;
+                run_next = decode_run;
+                state_next = S_RUN;
               end
           end
       end
@@ -200,11 +205,7 @@ module diff_freq_serial_out #(
       end
 
       S_CTRL: begin
-        if (sel_out_reg == OUTPUT_NUM - 1'b1)
-          state_next = S_DONE;
-        else
-          state_next = S_IDLE;
-
+        state_next = S_IDLE;
         channel_enable_next[sel_out_reg] = enable_reg;
         channel_idle_next[sel_out_reg] = idle_reg;
         channel_mode_next[sel_out_reg] = mode_reg;
@@ -213,6 +214,10 @@ module diff_freq_serial_out #(
       S_REPEAT: begin
         state_next = S_IDLE;
         channel_repeat_next[sel_out_reg] = repeat_reg;
+      end
+
+      S_RUN: begin
+        state_next = S_DONE;
       end
 
       S_DONE: begin
@@ -236,7 +241,7 @@ module diff_freq_serial_out #(
     .freq_pattern_o  (decode_freq),
     .sel_out_o       (decode_sel_out),
     .enable_o        (decode_enable),
-    .stop_o          (decode_stop),
+    .run_o           (decode_run),
     .idle_o          (decode_idle),
     .mode_o          (decode_mode),
     .slow_period_o   (decode_slow_period),
@@ -256,7 +261,7 @@ module diff_freq_serial_out #(
         .clk_i           (clk_i),
         .rst_ni          (rst_ni),
         .enable_i        (enable_tick[j]),
-        .stop_i          (stop_reg),
+        .stop_i          (stop),
         .idle_i          (channel_idle[j]),
         .mode_i          (channel_mode[j]), // one-shot, repeat
         .output_pattern_i(channel_output[j]),

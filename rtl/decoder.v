@@ -21,7 +21,7 @@ module decoder #(
   output reg [DATA_BIT-1:0] freq_pattern_o,
   output reg [7:0]          sel_out_o,
   output reg                enable_o,
-  output reg                stop_o,
+  output reg                run_o,
   output reg                idle_o,
   output reg [1:0]          mode_o,
   output reg [7:0]          slow_period_o,
@@ -101,7 +101,7 @@ module decoder #(
     output_pattern_o = 0;
     freq_pattern_o   = 0;
     enable_o         = 0;
-    stop_o           = 0;
+    run_o            = 0;
     idle_o           = 0;
     mode_o           = 0;
     sel_out_o        = 0;
@@ -238,7 +238,7 @@ module decoder #(
           end
         else if (cmd_reg == `CMD_GLOBAL)
           begin
-            stop_o = global_reg[0];
+            run_o = global_reg[0];
           end
       end
 
