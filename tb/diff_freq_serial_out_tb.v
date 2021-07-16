@@ -66,7 +66,7 @@ module diff_freq_serial_out_tb ();
 
   diff_freq_serial_out #(
     .DATA_BIT       (`DATA_BIT),
-    .PACK_NUM       (`PACK_NUM),
+    .DATA_NUM       (`DATA_NUM),
     .OUTPUT_NUM     (`OUTPUT_NUM),
     .SLOW_PERIOD    (`DEFAULT_SLOW_PERIOD),
     .FAST_PERIOD    (`DEFAULT_FAST_PERIOD)
@@ -107,7 +107,6 @@ module diff_freq_serial_out_tb ();
     UPDATE_FREQ(freq_pattern);
     UPDATE_PERIOD(slow_period, fast_period);
     UPDATE_REPEAT(15, 3);
-    UPDATE_GLOBAL(1);
     UPDATE_DATA(0,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
     UPDATE_DATA(1,  IDLE_LOW, REPEAT_MODE, ENABLE);
     UPDATE_DATA(2,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
@@ -124,6 +123,7 @@ module diff_freq_serial_out_tb ();
     UPDATE_DATA(13, IDLE_HIGH, ONE_SHOT_MODE, ENABLE);
     UPDATE_DATA(14, IDLE_HIGH, REPEAT_MODE, ENABLE);
     UPDATE_DATA(15, IDLE_HIGH, REPEAT_MODE, ENABLE);
+    UPDATE_GLOBAL(1);
     
     //$finish;
   end

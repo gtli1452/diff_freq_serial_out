@@ -9,7 +9,7 @@
 
 module decoder #(
   parameter DATA_BIT   = 32,
-  parameter PACK_NUM   = 5,
+  parameter DATA_NUM   = 5,
   parameter FREQ_NUM   = 4,
   parameter PERIOD_NUM = 2
 ) (
@@ -17,6 +17,7 @@ module decoder #(
   input                     rst_ni,
   input      [7:0]          data_i,
   input                     rx_done_tick_i,
+  output reg [7:0]          amount_o,
   output reg [DATA_BIT-1:0] output_pattern_o,
   output reg [DATA_BIT-1:0] freq_pattern_o,
   output reg [7:0]          sel_out_o,
@@ -40,14 +41,17 @@ module decoder #(
   localparam [3:0] S_CTRL   = 4'b0110;
   localparam [3:0] S_REPEAT = 4'b0111;
   localparam [3:0] S_DONE   = 4'b1000;
+  localparam [3:0] S_AMOUNT = 4'b1001;
+  localparam [3:0] S_SELECT = 4'b1010;
 
   /* Parameter declaration */
-  localparam PACK_BIT   = 8 * PACK_NUM; // 32-bit data_pattern, 8-bit control
+  localparam PACK_BIT   = 8 * DATA_NUM; // 32-bit data_pattern, 8-bit control
   localparam FREQ_BIT   = 8 * FREQ_NUM; // 32-bit freq_pattern, 8-bit low_period, 8-bit high_period
-  localparam FREQ_INDEX = 2 * DATA_BIT;
 
   /* Signal declaration */
   reg [3:0]          state_reg, state_next;
+  reg [7:0]          amount_reg, amount_next;
+  reg [7:0]          select_reg, select_next;
   reg [PACK_BIT-1:0] data_buf_reg, data_buf_next;
   reg [FREQ_BIT-1:0] freq_buf_reg, freq_buf_next;
   reg [15:0]         ctrl_reg, ctrl_next;
@@ -63,6 +67,8 @@ module decoder #(
     if (~rst_ni)
       begin
         state_reg    <= S_IDLE;
+        amount_reg   <= 0;
+        select_reg   <= 0;
         data_buf_reg <= 0;
         freq_buf_reg <= 0;
         ctrl_reg     <= 0;
@@ -75,6 +81,8 @@ module decoder #(
     else
       begin
         state_reg    <= state_next;
+        amount_reg   <= amount_next;
+        select_reg   <= select_next;
         data_buf_reg <= data_buf_next;
         freq_buf_reg <= freq_buf_next;
         ctrl_reg     <= ctrl_next;
@@ -89,6 +97,8 @@ module decoder #(
   /* FSMD next-state logic & functional units */
   always @(*) begin
     state_next       = state_reg; // default state : the same
+    amount_next      = amount_reg;
+    select_next      = select_reg;
     data_buf_next    = data_buf_reg;
     freq_buf_next    = freq_buf_reg;
     ctrl_next        = ctrl_reg;
@@ -98,6 +108,7 @@ module decoder #(
     count_next       = count_reg;
     cmd_next         = cmd_reg;
     done_tick_o      = 0;
+    amount_o         = 0;
     output_pattern_o = 0;
     freq_pattern_o   = 0;
     enable_o         = 0;
@@ -117,15 +128,15 @@ module decoder #(
           begin
             cmd_next = data_i;
             if (cmd_next == `CMD_DATA)
-              state_next = S_DATA;
+              state_next = S_SELECT;
             else if (cmd_next == `CMD_FREQ)
               state_next = S_FREQ;
             else if (cmd_next == `CMD_PERIOD)
               state_next = S_PERIOD;
             else if (cmd_next == `CMD_CTRL)
-              state_next = S_CTRL;
+              state_next = S_SELECT;
             else if (cmd_next == `CMD_REPEAT)
-              state_next = S_REPEAT;
+              state_next = S_SELECT;
             else if (cmd_next == `CMD_GLOBAL)
               state_next = S_GLOBAL;
             else
@@ -159,15 +170,25 @@ module decoder #(
           end
       end
 
+      S_SELECT: begin
+        if (rx_done_tick_i)
+          begin
+            select_next = data_i;
+            if (cmd_next == `CMD_DATA)
+              state_next = S_DATA;
+            else if (cmd_next == `CMD_CTRL)
+              state_next = S_CTRL;
+            else if (cmd_next == `CMD_REPEAT)
+              state_next = S_REPEAT;
+            else
+              state_next = S_IDLE;
+          end
+      end
+
       S_CTRL: begin
         if (rx_done_tick_i)
           begin
-            ctrl_next = {data_i, ctrl_reg[15:8]};
-            count_next = count_reg + 1'b1;
-          end
-        else if (count_reg == 8'h02)
-          begin
-            count_next = 0;
+            ctrl_next = data_i;
             state_next = S_DONE;
           end
       end
@@ -175,12 +196,7 @@ module decoder #(
       S_REPEAT: begin
         if (rx_done_tick_i)
           begin
-            repeat_next = {data_i, repeat_reg[15:8]};
-            count_next = count_reg + 1'b1;
-          end
-        else if (count_reg == 8'h02)
-          begin
-            count_next = 0;
+            repeat_next = data_i;
             state_next = S_DONE;
           end
       end
@@ -193,13 +209,21 @@ module decoder #(
           end
       end
 
+      S_AMOUNT: begin
+        if (rx_done_tick_i)
+          begin
+            amount_next = data_i;
+            state_next = S_DATA;
+          end
+      end
+
       S_DATA: begin
         if (rx_done_tick_i)
           begin
             data_buf_next = {data_i, data_buf_reg[PACK_BIT-1:8]}; // right-shift 8-bit
             count_next = count_reg + 1'b1;
           end
-        else if (count_reg == PACK_NUM)
+        else if (count_reg == DATA_NUM)
           begin
             count_next = 0;
             state_next = S_DONE;
@@ -212,8 +236,8 @@ module decoder #(
         state_next = S_IDLE;
         if (cmd_reg == `CMD_DATA)
           begin
-            sel_out_o = data_buf_reg[7:0];
-            output_pattern_o = data_buf_reg[DATA_BIT+7:8];
+            sel_out_o = select_reg[7:0];
+            output_pattern_o = data_buf_reg[DATA_BIT-1:0];
           end
         else if (cmd_reg == `CMD_FREQ)
           begin
@@ -226,15 +250,15 @@ module decoder #(
           end
         else if (cmd_reg == `CMD_CTRL)
           begin
-            sel_out_o = ctrl_reg[7:0];
-            enable_o = ctrl_reg[8];
-            mode_o = ctrl_reg[10:9];
-            idle_o = ctrl_reg[11];
+            sel_out_o = select_reg;
+            enable_o = ctrl_reg[0];
+            mode_o = ctrl_reg[2:1];
+            idle_o = ctrl_reg[3];
           end
         else if (cmd_reg == `CMD_REPEAT)
           begin
-            sel_out_o = repeat_reg[7:0];
-            repeat_o = repeat_reg[15:8];
+            sel_out_o = select_reg;
+            repeat_o = repeat_reg[7:0];
           end
         else if (cmd_reg == `CMD_GLOBAL)
           begin

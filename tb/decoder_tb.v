@@ -33,6 +33,7 @@ module decoder_tb ();
   wire [`UART_DATA_BIT-1:0] tb_received_data;
 
   // decoder signal
+  wire [7:0]           amount_o;
   wire [`DATA_BIT-1:0] output_pattern_o;
   wire [7:0]           sel_out_o;
   wire [1:0]           mode_o;
@@ -62,13 +63,14 @@ module decoder_tb ();
 
   decoder #(
     .DATA_BIT(`DATA_BIT),
-    .PACK_NUM(`PACK_NUM),
+    .DATA_NUM(`DATA_NUM),
     .FREQ_NUM(`FREQ_NUM)
   ) decoder_dut (
     .clk_i           (clk),
     .rst_ni          (rst_n),
     .data_i          (tb_received_data),
     .rx_done_tick_i  (tb_rx_done),
+    .amount_o        (amount_o),
     .output_pattern_o(output_pattern_o),
     .freq_pattern_o  (freq_pattern_o),
     .sel_out_o       (sel_out_o),

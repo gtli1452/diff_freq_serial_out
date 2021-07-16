@@ -9,7 +9,7 @@
 
 module diff_freq_serial_out #(
   parameter       DATA_BIT    = 32,
-  parameter       PACK_NUM    = 5,
+  parameter       DATA_NUM    = 5,
   parameter       OUTPUT_NUM  = 16,
   parameter [7:0] SLOW_PERIOD = 20,
   parameter [7:0] FAST_PERIOD = 5
@@ -45,6 +45,7 @@ module diff_freq_serial_out #(
   reg                update_tick;
 
   // Decoder signal
+  wire [7:0]          decode_amount;
   wire [DATA_BIT-1:0] decode_output;
   wire [DATA_BIT-1:0] decode_freq;
   wire [7:0]          decode_sel_out;
@@ -231,12 +232,13 @@ module diff_freq_serial_out #(
 
   decoder #(
     .DATA_BIT        (DATA_BIT),
-    .PACK_NUM        (PACK_NUM)
+    .DATA_NUM        (DATA_NUM)
   ) decoder_dut (
     .clk_i           (clk_i),
     .rst_ni          (rst_ni),
     .data_i          (data_i),
     .rx_done_tick_i  (rx_done_tick_i),
+    .amount_o        (decode_amount),
     .output_pattern_o(decode_output),
     .freq_pattern_o  (decode_freq),
     .sel_out_o       (decode_sel_out),
