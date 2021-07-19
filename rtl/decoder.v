@@ -9,15 +9,13 @@
 
 module decoder #(
   parameter DATA_BIT   = 32,
-  parameter DATA_NUM   = 5,
-  parameter FREQ_NUM   = 4,
   parameter PERIOD_NUM = 2
 ) (
   input                     clk_i,
   input                     rst_ni,
   input      [7:0]          data_i,
   input                     rx_done_tick_i,
-  output reg [7:0]          amount_o,
+  output reg [8:0]          amount_o,
   output reg [DATA_BIT-1:0] output_pattern_o,
   output reg [DATA_BIT-1:0] freq_pattern_o,
   output reg [7:0]          sel_out_o,
@@ -43,22 +41,22 @@ module decoder #(
   localparam [3:0] S_DONE   = 4'b1000;
   localparam [3:0] S_AMOUNT = 4'b1001;
   localparam [3:0] S_SELECT = 4'b1010;
+  localparam [3:0] S_SHIFT  = 4'b1011;
 
   /* Parameter declaration */
-  localparam PACK_BIT   = 8 * DATA_NUM; // 32-bit data_pattern, 8-bit control
-  localparam FREQ_BIT   = 8 * FREQ_NUM; // 32-bit freq_pattern, 8-bit low_period, 8-bit high_period
+  localparam TOTAL_BYTE = DATA_BIT >> 3;
 
   /* Signal declaration */
   reg [3:0]          state_reg, state_next;
-  reg [7:0]          amount_reg, amount_next;
+  reg [8:0]          amount_reg, amount_next;
   reg [7:0]          select_reg, select_next;
-  reg [PACK_BIT-1:0] data_buf_reg, data_buf_next;
-  reg [FREQ_BIT-1:0] freq_buf_reg, freq_buf_next;
+  reg [DATA_BIT-1:0] data_buf_reg, data_buf_next;
+  reg [DATA_BIT-1:0] freq_buf_reg, freq_buf_next;
   reg [15:0]         ctrl_reg, ctrl_next;
   reg [15:0]         period_reg, period_next; // slow_period + fast_period
   reg [15:0]         repeat_reg, repeat_next;
   reg [7:0]          global_reg, global_next;
-  reg [7:0]          count_reg, count_next;
+  reg [8:0]          count_reg, count_next;
   reg [7:0]          cmd_reg, cmd_next;
 
   /* Body */
@@ -150,13 +148,13 @@ module decoder #(
       S_FREQ: begin
         if (rx_done_tick_i)
           begin
-            freq_buf_next = {freq_buf_reg[FREQ_BIT-9:0], data_i}; // left shift 8-bit
+            freq_buf_next = {data_i, freq_buf_reg[DATA_BIT-1:8]}; // right shift 8-bit
             count_next = count_reg + 1'b1;
           end
         else if (count_reg == amount_reg)
           begin
             count_next = 0;
-            state_next = S_DONE;
+            state_next = S_SHIFT;
           end
       end
 
@@ -215,7 +213,7 @@ module decoder #(
       S_AMOUNT: begin
         if (rx_done_tick_i)
           begin
-            amount_next = data_i;
+            amount_next = data_i + 1'b1;
             if (cmd_reg == `CMD_DATA)
               state_next = S_DATA;
             else if (cmd_reg == `CMD_FREQ)
@@ -228,13 +226,29 @@ module decoder #(
       S_DATA: begin
         if (rx_done_tick_i)
           begin
-            data_buf_next = {data_buf_reg[PACK_BIT-9:0], data_i}; // left-shift 8-bit
+            data_buf_next = {data_i, data_buf_reg[DATA_BIT-1:8]}; // right-shift 8-bit
             count_next = count_reg + 1'b1;
           end
         else if (count_reg == amount_reg)
           begin
             count_next = 0;
+            state_next = S_SHIFT;
+          end
+      end
+
+      S_SHIFT: begin
+        if (count_reg == (TOTAL_BYTE-amount_reg))
+          begin
             state_next = S_DONE;
+            count_next = 0;
+          end
+        else
+          begin
+            count_next = count_reg + 1'b1;
+            if (cmd_reg == `CMD_DATA)
+              data_buf_next = {data_buf_reg[DATA_BIT-1:8]}; // right-shift 8-bit
+            else if (cmd_reg == `CMD_FREQ)
+              freq_buf_next = {freq_buf_reg[DATA_BIT-1:8]}; // right-shift 8-bit
           end
       end
 

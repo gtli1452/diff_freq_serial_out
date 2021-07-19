@@ -9,7 +9,6 @@
 
 module diff_freq_serial_out #(
   parameter       DATA_BIT    = 32,
-  parameter       DATA_NUM    = 5,
   parameter       OUTPUT_NUM  = 16,
   parameter [7:0] SLOW_PERIOD = 20,
   parameter [7:0] FAST_PERIOD = 5
@@ -32,7 +31,7 @@ module diff_freq_serial_out #(
   /* Signal declaration */
   // to load the decoder output
   reg [2:0]          state_reg,   state_next;
-  reg [7:0]          amount_reg,  amount_next;
+  reg [8:0]          amount_reg,  amount_next;
   reg [DATA_BIT-1:0] output_reg,  output_next;
   reg [DATA_BIT-1:0] freq_reg,    freq_next;
   reg [7:0]          sel_out_reg, sel_out_next;
@@ -46,7 +45,7 @@ module diff_freq_serial_out #(
   reg                update_tick;
 
   // Decoder signal
-  wire [7:0]          decode_amount;
+  wire [8:0]          decode_amount;
   wire [DATA_BIT-1:0] decode_output;
   wire [DATA_BIT-1:0] decode_freq;
   wire [7:0]          decode_sel_out;
@@ -61,8 +60,8 @@ module diff_freq_serial_out #(
   wire                decode_done_tick;
 
   // Signal to serial out entity
-  reg [7:0]            channel_amount[OUTPUT_NUM-1:0];
-  reg [7:0]            channel_amount_next[OUTPUT_NUM-1:0];
+  reg [8:0]            channel_amount[OUTPUT_NUM-1:0];
+  reg [8:0]            channel_amount_next[OUTPUT_NUM-1:0];
   reg [DATA_BIT-1:0]   channel_output[OUTPUT_NUM-1:0];
   reg [DATA_BIT-1:0]   channel_output_next[OUTPUT_NUM-1:0];
   reg [OUTPUT_NUM-1:0] channel_enable, channel_enable_next;
@@ -242,8 +241,7 @@ module diff_freq_serial_out #(
   end
 
   decoder #(
-    .DATA_BIT        (DATA_BIT),
-    .DATA_NUM        (DATA_NUM)
+    .DATA_BIT        (DATA_BIT)
   ) decoder_dut (
     .clk_i           (clk_i),
     .rst_ni          (rst_ni),

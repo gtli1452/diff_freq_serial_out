@@ -76,7 +76,6 @@ module diff_freq_serial_out_test (
 
   diff_freq_serial_out #(
     .DATA_BIT      (`DATA_BIT),
-    .DATA_NUM      (`DATA_NUM),
     .OUTPUT_NUM    (`OUTPUT_NUM),
     .SLOW_PERIOD   (`DEFAULT_SLOW_PERIOD),
     .FAST_PERIOD   (`DEFAULT_FAST_PERIOD)

@@ -14,7 +14,7 @@ module serial_out #(
   input                 stop_i,
   input                 idle_i,
   input  [1:0]          mode_i,   // b00:one-shot, b01:repeat, b10:repeat n_times
-  input  [7:0]          amount_i, // amount of data bytes
+  input  [8:0]          amount_i, // amount of data bytes
   input  [DATA_BIT-1:0] output_pattern_i,
   input  [DATA_BIT-1:0] freq_pattern_i,
   input  [7:0]          slow_period_i,
@@ -40,8 +40,8 @@ module serial_out #(
   reg [1:0]          state_reg,     state_next;
   reg [1:0]          mode_reg,      mode_next;
   reg                output_reg,    output_next;
-  reg [10:0]         amount_reg,    amount_next;
-  reg [10:0]         data_bit_reg,  data_bit_next;
+  reg [11:0]         amount_reg,    amount_next;
+  reg [11:0]         data_bit_reg,  data_bit_next;
   reg [DATA_BIT-1:0] data_buf_reg,  data_buf_next;
   reg [DATA_BIT-1:0] freq_buf_reg,  freq_buf_next;
   reg [7:0]          slow_period,   slow_period_next;
