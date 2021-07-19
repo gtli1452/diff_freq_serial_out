@@ -37,7 +37,7 @@ module decoder_tb ();
   wire [`DATA_BIT-1:0] output_pattern_o;
   wire [7:0]           sel_out_o;
   wire [1:0]           mode_o;
-  wire                 stop_o;
+  wire                 run_o;
   wire                 idle_o;
   wire                 enable_o;
   wire [`DATA_BIT-1:0] freq_pattern_o;
@@ -76,7 +76,7 @@ module decoder_tb ();
     .sel_out_o       (sel_out_o),
     .mode_o          (mode_o),
     .enable_o        (enable_o),
-    .stop_o          (stop_o),
+    .run_o           (run_o),
     .idle_o          (idle_o),
     .slow_period_o   (slow_period_o),
     .fast_period_o   (fast_period_o),
@@ -105,6 +105,7 @@ module decoder_tb ();
   );
 
   reg [7:0] channel = 8'h5;
+  reg [7:0] amount = 8'h4;
   reg [7:0] slow_period = 8'h14;
   reg [7:0] fast_period = 8'h5;
   reg [7:0] repeat_times = 8'h3;
@@ -115,8 +116,8 @@ module decoder_tb ();
     @(posedge rst_n); // wait for finish reset
     // update frequency
     UPDATE_PERIOD(slow_period, fast_period);
-    UPDATE_FREQ(freq_pattern);
-    UPDATE_DATA(channel, data_pattern);
+    UPDATE_FREQ(amount, freq_pattern);
+    UPDATE_DATA(channel, amount, data_pattern);
     UPDATE_REPEAT(channel, repeat_times);
     UPDATE_CTRL(channel, IDLE_HIGH, CONTINUE_MODE, ENABLE);
   end
@@ -145,6 +146,7 @@ module decoder_tb ();
 
   task UPDATE_DATA;
     input [7:0] channel;
+    input [7:0] amount;
     input [31:0] data;
     integer i;
     begin
@@ -152,6 +154,8 @@ module decoder_tb ();
       UART_WRITE_BYTE(`CMD_DATA);
       // channel index
       UART_WRITE_BYTE(channel);
+      // data amount
+      UART_WRITE_BYTE(amount);
       // data pattern
       for (i = 0; i < 4; i = i + 1'b1)
         begin
@@ -162,11 +166,14 @@ module decoder_tb ();
   endtask
 
   task UPDATE_FREQ;
+    input [7:0] amount;
     input [31:0] freq;
     integer i;
     begin
       // command
       UART_WRITE_BYTE(`CMD_FREQ);
+      // amount
+      UART_WRITE_BYTE(amount);
       // freq pattern
       for (i = 0; i < 4; i = i + 1'b1)
         begin

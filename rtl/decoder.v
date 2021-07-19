@@ -124,13 +124,16 @@ module decoder #(
     case (state_reg)
       S_IDLE: begin
         count_next = 0;
+        amount_next = 0;
+        data_buf_next = 0;
+        freq_buf_next = 0;
         if (rx_done_tick_i)
           begin
             cmd_next = data_i;
             if (cmd_next == `CMD_DATA)
               state_next = S_SELECT;
             else if (cmd_next == `CMD_FREQ)
-              state_next = S_FREQ;
+              state_next = S_AMOUNT;
             else if (cmd_next == `CMD_PERIOD)
               state_next = S_PERIOD;
             else if (cmd_next == `CMD_CTRL)
@@ -147,10 +150,10 @@ module decoder #(
       S_FREQ: begin
         if (rx_done_tick_i)
           begin
-            freq_buf_next = {data_i, freq_buf_reg[FREQ_BIT-1:8]}; // right shift 8-bit
+            freq_buf_next = {freq_buf_reg[FREQ_BIT-9:0], data_i}; // left shift 8-bit
             count_next = count_reg + 1'b1;
           end
-        else if (count_reg == FREQ_NUM)
+        else if (count_reg == amount_reg)
           begin
             count_next = 0;
             state_next = S_DONE;
@@ -175,7 +178,7 @@ module decoder #(
           begin
             select_next = data_i;
             if (cmd_next == `CMD_DATA)
-              state_next = S_DATA;
+              state_next = S_AMOUNT;
             else if (cmd_next == `CMD_CTRL)
               state_next = S_CTRL;
             else if (cmd_next == `CMD_REPEAT)
@@ -213,17 +216,22 @@ module decoder #(
         if (rx_done_tick_i)
           begin
             amount_next = data_i;
-            state_next = S_DATA;
+            if (cmd_reg == `CMD_DATA)
+              state_next = S_DATA;
+            else if (cmd_reg == `CMD_FREQ)
+              state_next = S_FREQ;
+            else
+              state_next = S_IDLE;
           end
       end
 
       S_DATA: begin
         if (rx_done_tick_i)
           begin
-            data_buf_next = {data_i, data_buf_reg[PACK_BIT-1:8]}; // right-shift 8-bit
+            data_buf_next = {data_buf_reg[PACK_BIT-9:0], data_i}; // left-shift 8-bit
             count_next = count_reg + 1'b1;
           end
-        else if (count_reg == DATA_NUM)
+        else if (count_reg == amount_reg)
           begin
             count_next = 0;
             state_next = S_DONE;
@@ -236,7 +244,8 @@ module decoder #(
         state_next = S_IDLE;
         if (cmd_reg == `CMD_DATA)
           begin
-            sel_out_o = select_reg[7:0];
+            sel_out_o = select_reg;
+            amount_o = amount_reg;
             output_pattern_o = data_buf_reg[DATA_BIT-1:0];
           end
         else if (cmd_reg == `CMD_FREQ)

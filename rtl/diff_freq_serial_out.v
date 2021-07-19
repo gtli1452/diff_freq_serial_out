@@ -32,6 +32,7 @@ module diff_freq_serial_out #(
   /* Signal declaration */
   // to load the decoder output
   reg [2:0]          state_reg,   state_next;
+  reg [7:0]          amount_reg,  amount_next;
   reg [DATA_BIT-1:0] output_reg,  output_next;
   reg [DATA_BIT-1:0] freq_reg,    freq_next;
   reg [7:0]          sel_out_reg, sel_out_next;
@@ -60,6 +61,8 @@ module diff_freq_serial_out #(
   wire                decode_done_tick;
 
   // Signal to serial out entity
+  reg [7:0]            channel_amount[OUTPUT_NUM-1:0];
+  reg [7:0]            channel_amount_next[OUTPUT_NUM-1:0];
   reg [DATA_BIT-1:0]   channel_output[OUTPUT_NUM-1:0];
   reg [DATA_BIT-1:0]   channel_output_next[OUTPUT_NUM-1:0];
   reg [OUTPUT_NUM-1:0] channel_enable, channel_enable_next;
@@ -86,6 +89,7 @@ module diff_freq_serial_out #(
     if (~rst_ni)
       begin
         state_reg       <= S_IDLE;
+        amount_reg      <= 0;
         output_reg      <= 0;
         sel_out_reg     <= 0;
         enable_reg      <= 0;
@@ -104,12 +108,14 @@ module diff_freq_serial_out #(
           begin
             channel_mode[i] <= 0;
             channel_repeat[i] <= 0;
+            channel_amount[i] <= 0;
             channel_output[i] <= 0;
           end
       end
     else
       begin
         state_reg       <= state_next;
+        amount_reg      <= amount_next;
         output_reg      <= output_next;
         sel_out_reg     <= sel_out_next;
         enable_reg      <= enable_next;
@@ -128,6 +134,7 @@ module diff_freq_serial_out #(
           begin
             channel_mode[i] <= channel_mode_next[i];
             channel_repeat[i] <= channel_repeat_next[i];
+            channel_amount[i] <= channel_amount_next[i];
             channel_output[i] <= channel_output_next[i];
           end
       end
@@ -137,6 +144,7 @@ module diff_freq_serial_out #(
   // update the output pattern
   always @(*) begin
     state_next       = state_reg;
+    amount_next      = amount_reg;
     output_next      = output_reg;
     sel_out_next     = sel_out_reg;
     enable_next      = enable_reg;
@@ -156,6 +164,7 @@ module diff_freq_serial_out #(
       begin
         channel_mode_next[i] = channel_mode[i];
         channel_repeat_next[i] = channel_repeat[i];
+        channel_amount_next[i] = channel_amount[i];
         channel_output_next[i] = channel_output[i];
       end
 
@@ -166,6 +175,7 @@ module diff_freq_serial_out #(
             if (decode_cmd == `CMD_DATA)
               begin
                 sel_out_next = decode_sel_out;
+                amount_next = decode_amount;
                 output_next = decode_output;
                 state_next = S_DATA;
               end
@@ -202,6 +212,7 @@ module diff_freq_serial_out #(
 
       S_DATA: begin
         state_next = S_IDLE;
+        channel_amount_next[sel_out_reg] = amount_reg;
         channel_output_next[sel_out_reg] = output_reg;
       end
 
@@ -266,6 +277,7 @@ module diff_freq_serial_out #(
         .stop_i          (stop),
         .idle_i          (channel_idle[j]),
         .mode_i          (channel_mode[j]), // one-shot, repeat
+        .amount_i        (channel_amount[j]),
         .output_pattern_i(channel_output[j]),
         .freq_pattern_i  (freq_reg),
         .slow_period_i   (slow_period_reg),

@@ -13,7 +13,8 @@ module serial_out #(
   input                 enable_i,
   input                 stop_i,
   input                 idle_i,
-  input  [1:0]          mode_i,        // b00:one-shot, b01:repeat, b10:repeat n_times
+  input  [1:0]          mode_i,   // b00:one-shot, b01:repeat, b10:repeat n_times
+  input  [7:0]          amount_i, // amount of data bytes
   input  [DATA_BIT-1:0] output_pattern_i,
   input  [DATA_BIT-1:0] freq_pattern_i,
   input  [7:0]          slow_period_i,
@@ -39,7 +40,8 @@ module serial_out #(
   reg [1:0]          state_reg,     state_next;
   reg [1:0]          mode_reg,      mode_next;
   reg                output_reg,    output_next;
-  reg [5:0]          data_bit_reg,  data_bit_next;
+  reg [10:0]         amount_reg,    amount_next;
+  reg [10:0]         data_bit_reg,  data_bit_next;
   reg [DATA_BIT-1:0] data_buf_reg,  data_buf_next;
   reg [DATA_BIT-1:0] freq_buf_reg,  freq_buf_next;
   reg [7:0]          slow_period,   slow_period_next;
@@ -58,6 +60,7 @@ module serial_out #(
         state_reg     <= S_IDLE;
         mode_reg      <= 0;
         output_reg    <= 0;
+        amount_reg    <= 0;
         data_bit_reg  <= 0;
         data_buf_reg  <= 0;
         freq_buf_reg  <= 0;
@@ -72,6 +75,7 @@ module serial_out #(
         state_reg     <= state_next;
         mode_reg      <= mode_next;
         output_reg    <= output_next;
+        amount_reg    <= amount_next;
         data_bit_reg  <= data_bit_next;
         data_buf_reg  <= data_buf_next;
         freq_buf_reg  <= freq_buf_next;
@@ -88,6 +92,7 @@ module serial_out #(
     state_next       = state_reg;
     mode_next        = mode_reg;
     output_next      = output_reg;
+    amount_next      = amount_reg;
     data_bit_next    = data_bit_reg;
     data_buf_next    = data_buf_reg;
     freq_buf_next    = freq_buf_reg;
@@ -107,6 +112,7 @@ module serial_out #(
       S_UPDATE: begin
         state_next       = S_ONE_SHOT;
         mode_next        = mode_i;
+        amount_next      = amount_i << 3; // transfer to bits
         data_buf_next    = output_pattern_i;
         freq_buf_next    = freq_pattern_i;
         slow_period_next = slow_period_i;
@@ -127,7 +133,7 @@ module serial_out #(
           state_next = S_UPDATE;
         else if (count_reg == 0)
           begin
-            if (data_bit_reg == (DATA_BIT - 1'b1))
+            if (data_bit_reg == (amount_reg - 1'b1))
               state_next = S_DONE;
             else
               data_bit_next = data_bit_reg + 1'b1;

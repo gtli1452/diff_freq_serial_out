@@ -104,25 +104,25 @@ module diff_freq_serial_out_tb ();
   initial begin
     @(posedge rst_n);       // wait for finish reset
     // update frequency
-    UPDATE_FREQ(freq_pattern);
+    UPDATE_FREQ(4, freq_pattern);
     UPDATE_PERIOD(slow_period, fast_period);
     UPDATE_REPEAT(15, 3);
-    UPDATE_DATA(0,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(1,  IDLE_LOW, REPEAT_MODE, ENABLE);
-    UPDATE_DATA(2,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(3,  IDLE_LOW, REPEAT_MODE, ENABLE);
-    UPDATE_DATA(4,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(5,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(6,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(7,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(8,  IDLE_LOW, REPEAT_MODE, ENABLE);
-    UPDATE_DATA(9,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(10, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(11, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(12, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(13, IDLE_HIGH, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(14, IDLE_HIGH, REPEAT_MODE, ENABLE);
-    UPDATE_DATA(15, IDLE_HIGH, REPEAT_MODE, ENABLE);
+    UPDATE_DATA(0,  1, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(1,  2, IDLE_LOW, REPEAT_MODE, ENABLE);
+    UPDATE_DATA(2,  3, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(3,  4, IDLE_LOW, REPEAT_MODE, ENABLE);
+    UPDATE_DATA(4,  1, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(5,  2, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(6,  3, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(7,  4, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(8,  1, IDLE_LOW, REPEAT_MODE, ENABLE);
+    UPDATE_DATA(9,  2, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(10, 3, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(11, 4, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(12, 3, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(13, 3, IDLE_HIGH, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(14, 4, IDLE_HIGH, REPEAT_MODE, ENABLE);
+    UPDATE_DATA(15, 4, IDLE_HIGH, REPEAT_MODE, ENABLE);
     UPDATE_GLOBAL(1);
     
     //$finish;
@@ -152,6 +152,7 @@ module diff_freq_serial_out_tb ();
 
   task UPDATE_DATA;
     input [7:0] channel;
+    input [7:0] amount;
     input reg idle;
     input reg [1:0] mode;
     input reg en;
@@ -159,6 +160,7 @@ module diff_freq_serial_out_tb ();
       // command
       UART_WRITE_BYTE(`CMD_DATA);
       UART_WRITE_BYTE(channel);
+      UART_WRITE_BYTE(amount);
       // data pattern
       UART_WRITE_BYTE(8'h55);
       UART_WRITE_BYTE(8'h55);
@@ -172,11 +174,14 @@ module diff_freq_serial_out_tb ();
   endtask
 
   task UPDATE_FREQ;
+    input [7:0] amount;
     input [31:0] freq_pattern;
     integer i;
     begin
       // command
       UART_WRITE_BYTE(`CMD_FREQ);
+      // amount
+      UART_WRITE_BYTE(amount);
       // freq pattern
       for (i = 0; i < 4; i = i + 1'b1)
         begin

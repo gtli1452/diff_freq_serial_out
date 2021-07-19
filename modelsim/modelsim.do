@@ -52,10 +52,9 @@ add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/decode_enable
 add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/slow_period_reg
 add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/fast_period_reg
 add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/update_tick
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/serial_out_entity[15]/channel/repeat_reg
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/serial_out_entity[15]/channel/repeat_i
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/serial_out_entity[15]/channel/state_reg
+add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/channel_amount
+add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/channel_output
 
-run 6.126ms
-wave zoom range 6.12ms 6.126ms
+run 6.788ms
+wave zoom range 6.783ms 6.788ms
 #q
