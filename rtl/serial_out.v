@@ -10,6 +10,7 @@ module serial_out #(
 ) (
   input                 clk_i,
   input                 rst_ni,
+  input                 start_i,
   input                 enable_i,
   input                 stop_i,
   input                 idle_i,
@@ -105,7 +106,7 @@ module serial_out #(
     case (state_reg)
       S_IDLE: begin
         output_next = idle_i;
-        if (enable)
+        if (enable & start_i)
           state_next = S_UPDATE; // load the input data
       end
 
@@ -127,7 +128,7 @@ module serial_out #(
       // change per bit period depending on freq_pattern
       S_ONE_SHOT: begin
         output_next = data_buf_reg[data_bit_reg]; // transmit lsb first
-        if (stop_i)
+        if (~enable)
           state_next = S_IDLE;
         else if (count_reg == 0)
           begin
@@ -149,7 +150,9 @@ module serial_out #(
         output_next = idle_i;
         done_tick_next = 1'b1;
 
-        if (mode_reg == CONTINUE)
+        if (~enable)
+          state_next = S_IDLE;
+        else if (mode_reg == CONTINUE)
           state_next = S_UPDATE;
         else if (mode_reg == REPEAT)
           if (repeat_reg + 1'b1 >= repeat_i)

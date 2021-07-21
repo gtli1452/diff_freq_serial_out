@@ -72,9 +72,9 @@ module diff_freq_serial_out #(
   reg [7:0]            channel_repeat_next[OUTPUT_NUM-1:0];
 
   // Wire assignment
-  // Create enable_tick for one-shot
-  wire [OUTPUT_NUM-1:0] enable_tick;
-  assign enable_tick = channel_enable & {OUTPUT_NUM{update_tick}};
+  // Create start_tick for one-shot
+  wire [OUTPUT_NUM-1:0] start_tick;
+  assign start_tick = channel_enable & {OUTPUT_NUM{update_tick}};
 
   // Stop signal for serial_out module
   wire stop = ~run_reg;
@@ -128,7 +128,7 @@ module diff_freq_serial_out #(
         // control bit pattern
         channel_enable  <= channel_enable_next;
         channel_idle    <= channel_idle_next;
-        
+
         for (i = 0; i < OUTPUT_NUM; i = i + 1'b1)
           begin
             channel_mode[i] <= channel_mode_next[i];
@@ -158,7 +158,7 @@ module diff_freq_serial_out #(
     channel_enable_next = channel_enable;
     channel_idle_next = channel_idle;
     update_tick = 0;
-    
+
     for (i = 0; i < OUTPUT_NUM; i = i + 1'b1)
       begin
         channel_mode_next[i] = channel_mode[i];
@@ -271,7 +271,8 @@ module diff_freq_serial_out #(
       ) channel (
         .clk_i           (clk_i),
         .rst_ni          (rst_ni),
-        .enable_i        (enable_tick[j]),
+        .start_i         (start_tick[j]),
+        .enable_i        (channel_enable[j]),
         .stop_i          (stop),
         .idle_i          (channel_idle[j]),
         .mode_i          (channel_mode[j]), // one-shot, repeat
