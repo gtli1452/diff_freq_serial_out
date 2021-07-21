@@ -129,8 +129,6 @@ module serial_out #(
         output_next = data_buf_reg[data_bit_reg]; // transmit lsb first
         if (stop_i)
           state_next = S_IDLE;
-        else if (enable)
-          state_next = S_UPDATE;
         else if (count_reg == 0)
           begin
             if (data_bit_reg == (amount_reg - 1'b1))
