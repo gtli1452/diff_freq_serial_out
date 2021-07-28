@@ -42,19 +42,11 @@ vlog -work diff_freq_serial_out_lib +incdir+$tb_dir $tb_dir/decoder_tb.v
 vsim -lib diff_freq_serial_out_lib diff_freq_serial_out_tb
 
 add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/*
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/decode_done_tick
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/state_reg
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/decode_cmd
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/sel_out_reg
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/output_reg
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/freq_reg
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/decode_enable
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/slow_period_reg
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/fast_period_reg
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/update_tick
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/channel_amount
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/channel_output
+add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/decode_sel_out
+add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/decode_amount
+add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/decode_output
+add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/decode_addr
 
-run 6.788ms
-wave zoom range 6.783ms 6.788ms
+run 0.5ms
+wave zoom range 0ms 0.5ms
 #q

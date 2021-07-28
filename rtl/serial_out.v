@@ -16,20 +16,23 @@ module serial_out #(
   input                 idle_i,
   input  [1:0]          mode_i,   // b00:one-shot, b01:repeat, b10:repeat n_times
   input  [8:0]          amount_i, // amount of data bytes
-  input  [DATA_BIT-1:0] output_pattern_i,
+  input  [7:0]          output_pattern_i,
   input  [DATA_BIT-1:0] freq_pattern_i,
   input  [7:0]          slow_period_i,
   input  [7:0]          fast_period_i,
   input  [7:0]          repeat_i,
+  input  [7:0]          addr_i,
+  input                 update_data_i,
   output                serial_out_o,  // idle state is low
   output                done_tick_o
 );
 
   /* State declaration */
-  localparam [1:0] S_IDLE     = 2'b00;
-  localparam [1:0] S_UPDATE   = 2'b01;
-  localparam [1:0] S_ONE_SHOT = 2'b10;
-  localparam [1:0] S_DONE     = 2'b11;
+  localparam [2:0] S_IDLE     = 3'b000;
+  localparam [2:0] S_UPDATE   = 3'b001;
+  localparam [2:0] S_ONE_SHOT = 3'b010;
+  localparam [2:0] S_DONE     = 3'b011;
+  localparam [2:0] S_PATTERN  = 3'b100;
 
   /* Parameter declaration */
   localparam IDLE     = 1'b0;
@@ -38,13 +41,21 @@ module serial_out #(
   localparam REPEAT   = 2'b10;
 
   /* Signal declaration */
-  reg [1:0]          state_reg,     state_next;
+  reg [2:0]          state_reg,     state_next;
   reg                output_reg,    output_next;
   reg [11:0]         amount_reg,    amount_next;
   reg [11:0]         data_bit_reg,  data_bit_next;
   reg [7:0]          repeat_reg,    repeat_next;
   reg [7:0]          count_reg,     count_next;
   reg                done_tick_reg, done_tick_next;
+
+  wire [7:0] byte_index = data_bit_reg[10:3];
+  wire [2:0] bit_index = data_bit_reg[2:0];
+
+  reg [7:0] pattern_reg[9:0];
+  reg [7:0] pattern_next[9:0];
+
+  integer i;
 
   wire enable = enable_i & ~stop_i;
 
@@ -60,6 +71,8 @@ module serial_out #(
         repeat_reg    <= 0;
         count_reg     <= 0;
         done_tick_reg <= 0;
+        for (i = 0; i < 10; i = i + 1)
+          pattern_reg[i] <= 0;
       end
     else
       begin
@@ -70,6 +83,8 @@ module serial_out #(
         repeat_reg    <= repeat_next;
         count_reg     <= count_next;
         done_tick_reg <= done_tick_next;
+        for (i = 0; i < 10; i = i + 1)
+          pattern_reg[i] <= pattern_next[i];
       end
   end
 
@@ -83,11 +98,21 @@ module serial_out #(
     count_next       = count_reg;
     done_tick_next   = 0;
 
+    for (i = 0; i < 10; i = i + 1)
+      pattern_next[i] = pattern_reg[i];
+
     case (state_reg)
       S_IDLE: begin
         output_next = idle_i;
         if (enable & start_i)
           state_next = S_UPDATE; // load the input data
+        if (update_data_i)
+          state_next = S_PATTERN;
+      end
+
+      S_PATTERN: begin
+        pattern_next[addr_i] = output_pattern_i;
+        state_next = S_IDLE;
       end
 
       S_UPDATE: begin
@@ -102,7 +127,7 @@ module serial_out #(
 
       // change per bit period depending on freq_pattern
       S_ONE_SHOT: begin
-        output_next = output_pattern_i[data_bit_reg]; // transmit lsb first
+        output_next = pattern_reg[byte_index][bit_index]; // transmit lsb first
         if (~enable)
           state_next = S_IDLE;
         else if (count_reg == 0)

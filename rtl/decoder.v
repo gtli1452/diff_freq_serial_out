@@ -16,7 +16,7 @@ module decoder #(
   input      [7:0]          data_i,
   input                     rx_done_tick_i,
   output reg [8:0]          amount_o,
-  output reg [DATA_BIT-1:0] output_pattern_o,
+  output reg [7:0]          output_pattern_o,
   output reg [DATA_BIT-1:0] freq_pattern_o,
   output reg [7:0]          sel_out_o,
   output reg                enable_o,
@@ -27,6 +27,7 @@ module decoder #(
   output reg [7:0]          fast_period_o,
   output reg [7:0]          repeat_o,
   output reg [7:0]          cmd_o,
+  output reg [7:0]          addr_o,
   output reg                done_tick_o
 );
 
@@ -57,6 +58,8 @@ module decoder #(
   reg [7:0]          global_reg, global_next;
   reg [8:0]          count_reg, count_next;
   reg [7:0]          cmd_reg, cmd_next;
+  reg [7:0]          addr_reg, addr_next;
+  reg [7:0]          data_reg, data_next;
 
   /* Body */
   /* FSMD state & data registers */
@@ -73,6 +76,8 @@ module decoder #(
         global_reg   <= 0;
         count_reg    <= 0;
         cmd_reg      <= 0;
+        addr_reg     <= 0;
+        data_reg     <= 0;
       end
     else
       begin
@@ -86,6 +91,8 @@ module decoder #(
         global_reg   <= global_next;
         count_reg    <= count_next;
         cmd_reg      <= cmd_next;
+        addr_reg     <= addr_next;
+        data_reg     <= data_next;
       end
   end
 
@@ -101,6 +108,8 @@ module decoder #(
     global_next      = global_reg;
     count_next       = count_reg;
     cmd_next         = cmd_reg;
+    addr_next        = addr_reg;
+    data_next        = data_reg;
     done_tick_o      = 0;
     amount_o         = 0;
     output_pattern_o = 0;
@@ -114,12 +123,15 @@ module decoder #(
     fast_period_o    = 0;
     repeat_o         = 0;
     cmd_o            = 0;
+    addr_o           = 0;
 
     case (state_reg)
       S_IDLE: begin
         count_next = 0;
         amount_next = 0;
         data_buf_next = 0;
+        addr_next = 0;
+        data_next = 0;
         if (rx_done_tick_i)
           begin
             cmd_next = data_i;
@@ -208,7 +220,7 @@ module decoder #(
       S_AMOUNT: begin
         if (rx_done_tick_i)
           begin
-            amount_next = data_i + 1'b1;
+            amount_next = data_i + 1'b1; // byte-amount = data + 1'b1
             if (cmd_reg == `CMD_DATA)
               state_next = S_DATA;
             else if (cmd_reg == `CMD_FREQ)
@@ -221,13 +233,8 @@ module decoder #(
       S_DATA: begin
         if (rx_done_tick_i)
           begin
-            data_buf_next = {data_i, data_buf_reg[DATA_BIT-1:8]}; // right-shift 8-bit
-            count_next = count_reg + 1'b1;
-          end
-        else if (count_reg == amount_reg)
-          begin
-            count_next = 0;
-            state_next = S_SHIFT;
+            data_next = data_i;
+            state_next = S_DONE;
           end
       end
 
@@ -252,7 +259,15 @@ module decoder #(
           begin
             sel_out_o = select_reg;
             amount_o = amount_reg;
-            output_pattern_o = data_buf_reg[DATA_BIT-1:0];
+            addr_o  = addr_reg;
+            output_pattern_o = data_reg;
+            if (addr_reg == amount_reg - 1'b1)
+                addr_next = 0;
+            else
+              begin
+                addr_next = addr_reg + 1'b1;
+                state_next = S_DATA;
+              end
           end
         else if (cmd_reg == `CMD_FREQ)
           begin
