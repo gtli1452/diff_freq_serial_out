@@ -39,14 +39,9 @@ module serial_out #(
 
   /* Signal declaration */
   reg [1:0]          state_reg,     state_next;
-  reg [1:0]          mode_reg,      mode_next;
   reg                output_reg,    output_next;
   reg [11:0]         amount_reg,    amount_next;
   reg [11:0]         data_bit_reg,  data_bit_next;
-  reg [DATA_BIT-1:0] data_buf_reg,  data_buf_next;
-  reg [DATA_BIT-1:0] freq_buf_reg,  freq_buf_next;
-  reg [7:0]          slow_period,   slow_period_next;
-  reg [7:0]          fast_period,   fast_period_next;
   reg [7:0]          repeat_reg,    repeat_next;
   reg [7:0]          count_reg,     count_next;
   reg                done_tick_reg, done_tick_next;
@@ -59,14 +54,9 @@ module serial_out #(
     if (~rst_ni)
       begin
         state_reg     <= S_IDLE;
-        mode_reg      <= 0;
         output_reg    <= 0;
         amount_reg    <= 0;
         data_bit_reg  <= 0;
-        data_buf_reg  <= 0;
-        freq_buf_reg  <= 0;
-        slow_period   <= 0;
-        fast_period   <= 0;
         repeat_reg    <= 0;
         count_reg     <= 0;
         done_tick_reg <= 0;
@@ -74,14 +64,9 @@ module serial_out #(
     else
       begin
         state_reg     <= state_next;
-        mode_reg      <= mode_next;
         output_reg    <= output_next;
         amount_reg    <= amount_next;
         data_bit_reg  <= data_bit_next;
-        data_buf_reg  <= data_buf_next;
-        freq_buf_reg  <= freq_buf_next;
-        slow_period   <= slow_period_next;
-        fast_period   <= fast_period_next;
         repeat_reg    <= repeat_next;
         count_reg     <= count_next;
         done_tick_reg <= done_tick_next;
@@ -91,14 +76,9 @@ module serial_out #(
   // FSMD next-state logic
   always @(*) begin
     state_next       = state_reg;
-    mode_next        = mode_reg;
     output_next      = output_reg;
     amount_next      = amount_reg;
     data_bit_next    = data_bit_reg;
-    data_buf_next    = data_buf_reg;
-    freq_buf_next    = freq_buf_reg;
-    slow_period_next = slow_period;
-    fast_period_next = fast_period;
     repeat_next      = repeat_reg;
     count_next       = count_reg;
     done_tick_next   = 0;
@@ -112,22 +92,17 @@ module serial_out #(
 
       S_UPDATE: begin
         state_next       = S_ONE_SHOT;
-        mode_next        = mode_i;
         amount_next      = amount_i << 3; // transfer to bits
-        data_buf_next    = output_pattern_i;
-        freq_buf_next    = freq_pattern_i;
-        slow_period_next = slow_period_i;
-        fast_period_next = fast_period_i;
         data_bit_next    = 0;
-        if (freq_buf_next[0])
-          count_next = fast_period_next - 1'b1;
+        if (freq_pattern_i[0])
+          count_next = fast_period_i - 1'b1;
         else
-          count_next = slow_period_next - 1'b1;
+          count_next = slow_period_i - 1'b1;
       end
 
       // change per bit period depending on freq_pattern
       S_ONE_SHOT: begin
-        output_next = data_buf_reg[data_bit_reg]; // transmit lsb first
+        output_next = output_pattern_i[data_bit_reg]; // transmit lsb first
         if (~enable)
           state_next = S_IDLE;
         else if (count_reg == 0)
@@ -137,10 +112,10 @@ module serial_out #(
             else
               data_bit_next = data_bit_reg + 1'b1;
 
-            if (freq_buf_reg[data_bit_next]) // to get the next-bit period, use "data_bit_next"
-              count_next = fast_period_next - 1'b1;
+            if (freq_pattern_i[data_bit_next]) // to get the next-bit period, use "data_bit_next"
+              count_next = fast_period_i - 1'b1;
             else
-              count_next = slow_period_next - 1'b1;
+              count_next = slow_period_i - 1'b1;
           end
         else
           count_next = count_reg - 1'b1;
@@ -152,9 +127,9 @@ module serial_out #(
 
         if (~enable)
           state_next = S_IDLE;
-        else if (mode_reg == CONTINUE)
+        else if (mode_i == CONTINUE)
           state_next = S_UPDATE;
-        else if (mode_reg == REPEAT)
+        else if (mode_i == REPEAT)
           if (repeat_reg + 1'b1 >= repeat_i)
             begin
               state_next = S_IDLE;
