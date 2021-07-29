@@ -269,10 +269,10 @@ module diff_freq_serial_out #(
   // Use generate loop to create instances
   genvar j;
   generate for (j = 0; j < OUTPUT_NUM; j = j + 1'b1)
-    begin: serial_out_entity
+    begin: channel
       serial_out #(
       .DATA_BIT          (DATA_BIT)
-      ) channel (
+      ) entity (
         .clk_i           (clk_i),
         .rst_ni          (rst_ni),
         .start_i         (start_tick[j]),

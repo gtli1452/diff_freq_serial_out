@@ -99,7 +99,7 @@ module diff_freq_serial_out_tb ();
   reg [7:0] slow_period = 8'h14;
   reg [7:0] fast_period = 8'h5;
   reg [`DATA_BIT-1:0] freq_pattern = `DATA_BIT'h0000_0000;
-  reg [`DATA_BIT-1:0] data_pattern = `DATA_BIT'h5501_0101;
+  reg [`DATA_BIT-1:0] data_pattern = `DATA_BIT'h5500_5500;
 
   initial begin
     @(posedge rst_n);       // wait for finish reset

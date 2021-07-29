@@ -17,7 +17,7 @@
   `define UART_DATA_BIT       8
   `define UART_STOP_BIT       1
   // diff_freq_serial
-  `define DATA_BIT            64  // 256 bytes
+  `define DATA_BIT            2048  // 256 bytes
   `define PERIOD_NUM          2   // hi/lo_freq_byte (2 bytes)
   `define OUTPUT_NUM          16
   `define DEFAULT_SLOW_PERIOD 20  // 100MHz/20 = 5MHz

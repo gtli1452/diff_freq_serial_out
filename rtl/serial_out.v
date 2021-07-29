@@ -41,19 +41,29 @@ module serial_out #(
   localparam REPEAT   = 2'b10;
 
   /* Signal declaration */
-  reg [2:0]          state_reg,     state_next;
-  reg                output_reg,    output_next;
-  reg [11:0]         amount_reg,    amount_next;
-  reg [11:0]         data_bit_reg,  data_bit_next;
-  reg [7:0]          repeat_reg,    repeat_next;
-  reg [7:0]          count_reg,     count_next;
-  reg                done_tick_reg, done_tick_next;
+  reg [2:0]  state_reg, state_next;
+  reg        output_reg, output_next;
+  reg [11:0] amount_reg, amount_next;
+  reg [11:0] data_bit_reg, data_bit_next;
+  reg [7:0]  repeat_reg, repeat_next;
+  reg [7:0]  count_reg, count_next;
+  reg        done_tick_reg, done_tick_next;
 
-  wire [7:0] byte_index = data_bit_reg[10:3];
+  /*
+   * There is one clock delay for reading the RAM data, i.e.,
+   * ram_address changed in the first rising edge, the ram_data_out is
+   * changed in the second rising edge.
+   *
+   * For leading one clock, byte_index is assigned to the data_bit_next[10:3]
+   */
+  wire [7:0] byte_index = data_bit_next[10:3];
   wire [2:0] bit_index = data_bit_reg[2:0];
 
-  reg [7:0] pattern_reg[9:0];
-  reg [7:0] pattern_next[9:0];
+  /* RAM */
+  reg  [7:0] ram_addr_i;
+  reg  [7:0] ram_data_i;
+  reg        ram_wr_i;
+  wire [7:0] ram_data_o;
 
   integer i;
 
@@ -71,8 +81,6 @@ module serial_out #(
         repeat_reg    <= 0;
         count_reg     <= 0;
         done_tick_reg <= 0;
-        for (i = 0; i < 10; i = i + 1)
-          pattern_reg[i] <= 0;
       end
     else
       begin
@@ -83,8 +91,6 @@ module serial_out #(
         repeat_reg    <= repeat_next;
         count_reg     <= count_next;
         done_tick_reg <= done_tick_next;
-        for (i = 0; i < 10; i = i + 1)
-          pattern_reg[i] <= pattern_next[i];
       end
   end
 
@@ -97,9 +103,9 @@ module serial_out #(
     repeat_next      = repeat_reg;
     count_next       = count_reg;
     done_tick_next   = 0;
-
-    for (i = 0; i < 10; i = i + 1)
-      pattern_next[i] = pattern_reg[i];
+    ram_wr_i         = 0;
+    ram_addr_i       = 0;
+    ram_data_i       = 0;
 
     case (state_reg)
       S_IDLE: begin
@@ -111,14 +117,16 @@ module serial_out #(
       end
 
       S_PATTERN: begin
-        pattern_next[addr_i] = output_pattern_i;
         state_next = S_IDLE;
+        ram_wr_i = 1'b1;
+        ram_addr_i = addr_i;
+        ram_data_i = output_pattern_i;
       end
 
       S_UPDATE: begin
-        state_next       = S_ONE_SHOT;
-        amount_next      = amount_i << 3; // transfer to bits
-        data_bit_next    = 0;
+        state_next = S_ONE_SHOT;
+        amount_next = amount_i << 3; // transfer to bits
+        data_bit_next = 0;
         if (freq_pattern_i[0])
           count_next = fast_period_i - 1'b1;
         else
@@ -127,12 +135,13 @@ module serial_out #(
 
       // change per bit period depending on freq_pattern
       S_ONE_SHOT: begin
-        output_next = pattern_reg[byte_index][bit_index]; // transmit lsb first
+        ram_addr_i = byte_index;
+        output_next = ram_data_o[bit_index]; // transmit lsb first
         if (~enable)
           state_next = S_IDLE;
         else if (count_reg == 0)
           begin
-            if (data_bit_reg == (amount_reg - 1'b1))
+            if (data_bit_reg == amount_reg - 1'b1)
               state_next = S_DONE;
             else
               data_bit_next = data_bit_reg + 1'b1;
@@ -160,10 +169,11 @@ module serial_out #(
               state_next = S_IDLE;
               repeat_next = 0;
             end
-          else begin
-            state_next = S_UPDATE;
-            repeat_next = repeat_reg + 1'b1;
-          end
+          else
+            begin
+              state_next = S_UPDATE;
+              repeat_next = repeat_reg + 1'b1;
+            end
         else
           state_next = S_IDLE;
       end
@@ -175,5 +185,13 @@ module serial_out #(
   /* Output */
   assign serial_out_o = output_reg;
   assign done_tick_o = done_tick_reg;
+
+  pattern_ram ram_pattern (
+    .address(ram_addr_i),
+    .clock  (clk_i),
+    .data   (ram_data_i),
+    .wren   (ram_wr_i),
+    .q      (ram_data_o)
+  );
 
 endmodule
