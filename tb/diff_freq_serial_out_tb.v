@@ -98,17 +98,17 @@ module diff_freq_serial_out_tb ();
 
   reg [7:0] slow_period = 8'h14;
   reg [7:0] fast_period = 8'h5;
-  reg [`DATA_BIT-1:0] freq_pattern = `DATA_BIT'h0000_0000;
-  reg [`DATA_BIT-1:0] data_pattern = `DATA_BIT'h5500_5500;
+  reg [`DATA_BIT-1:0] freq_pattern = `DATA_BIT'h5555_5555;
+  reg [`DATA_BIT-1:0] data_pattern = `DATA_BIT'h5555_5555;
 
   initial begin
     @(posedge rst_n);       // wait for finish reset
     // update frequency
-    // UPDATE_FREQ(2, freq_pattern);
+    UPDATE_FREQ(3, freq_pattern);
     // UPDATE_PERIOD(slow_period, fast_period);
     // UPDATE_REPEAT(15, 3);
-    UPDATE_DATA(0,  3, data_pattern, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    // UPDATE_DATA(1,  1, data_pattern, IDLE_LOW, REPEAT_MODE, ENABLE);
+    UPDATE_DATA(0,  2, data_pattern, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(1,  2, data_pattern, IDLE_LOW, REPEAT_MODE, ENABLE);
     // UPDATE_DATA(2,  2, data_pattern, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
     // UPDATE_DATA(3,  3, data_pattern, IDLE_LOW, REPEAT_MODE, ENABLE);
     // UPDATE_DATA(4,  0, data_pattern, IDLE_LOW, ONE_SHOT_MODE, ENABLE);

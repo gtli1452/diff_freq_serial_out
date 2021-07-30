@@ -71,6 +71,8 @@ module diff_freq_serial_out #(
   reg [7:0]            channel_repeat[OUTPUT_NUM-1:0];
   reg [7:0]            channel_repeat_next[OUTPUT_NUM-1:0];
   reg [OUTPUT_NUM-1:0] channel_update_data;
+  wire [11:0]          channel_bit_count[OUTPUT_NUM-1:0];
+  wire [7:0]           channel_period[OUTPUT_NUM-1:0];
 
   // Wire assignment
   // Create start_tick for one-shot
@@ -266,6 +268,48 @@ module diff_freq_serial_out #(
     .done_tick_o     (decode_done_tick)
   );
 
+  period_count #(
+    .DATA_BIT(DATA_BIT)
+  ) period_count (
+    .clk_i         (clk_i),
+    .rst_ni        (rst_ni),
+    .freq_pattern_i(freq_reg),
+    .slow_period_i (slow_period_reg),
+    .fast_period_i (fast_period_reg),
+    .bit_count_0_i (channel_bit_count[0]),
+    .bit_count_1_i (channel_bit_count[1]),
+    .bit_count_2_i (channel_bit_count[2]),
+    .bit_count_3_i (channel_bit_count[3]),
+    .bit_count_4_i (channel_bit_count[4]),
+    .bit_count_5_i (channel_bit_count[5]),
+    .bit_count_6_i (channel_bit_count[6]),
+    .bit_count_7_i (channel_bit_count[7]),
+    .bit_count_8_i (channel_bit_count[8]),
+    .bit_count_9_i (channel_bit_count[9]),
+    .bit_count_10_i (channel_bit_count[10]),
+    .bit_count_11_i (channel_bit_count[11]),
+    .bit_count_12_i (channel_bit_count[12]),
+    .bit_count_13_i (channel_bit_count[13]),
+    .bit_count_14_i (channel_bit_count[14]),
+    .bit_count_15_i (channel_bit_count[15]),
+    .period_0_o (channel_period[0]),
+    .period_1_o (channel_period[1]),
+    .period_2_o (channel_period[2]),
+    .period_3_o (channel_period[3]),
+    .period_4_o (channel_period[4]),
+    .period_5_o (channel_period[5]),
+    .period_6_o (channel_period[6]),
+    .period_7_o (channel_period[7]),
+    .period_8_o (channel_period[8]),
+    .period_9_o (channel_period[9]),
+    .period_10_o (channel_period[10]),
+    .period_11_o (channel_period[11]),
+    .period_12_o (channel_period[12]),
+    .period_13_o (channel_period[13]),
+    .period_14_o (channel_period[14]),
+    .period_15_o (channel_period[15])
+  );
+
   // Use generate loop to create instances
   genvar j;
   generate for (j = 0; j < OUTPUT_NUM; j = j + 1'b1)
@@ -282,12 +326,11 @@ module diff_freq_serial_out #(
         .mode_i          (channel_mode[j]), // one-shot, repeat
         .amount_i        (channel_amount[j]),
         .output_pattern_i(output_reg),
-        .freq_pattern_i  (freq_reg),
-        .slow_period_i   (slow_period_reg),
-        .fast_period_i   (fast_period_reg),
+        .period_i        (channel_period[j]),
         .repeat_i        (channel_repeat[j]),
         .addr_i          (addr_reg),
         .update_data_i   (channel_update_data[j]),
+        .bit_count_o     (channel_bit_count[j]),
         .serial_out_o    (serial_out_o[j]), // idle state is low
         .done_tick_o     ()
       );

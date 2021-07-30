@@ -17,12 +17,11 @@ module serial_out #(
   input  [1:0]          mode_i,   // b00:one-shot, b01:repeat, b10:repeat n_times
   input  [8:0]          amount_i, // amount of data bytes
   input  [7:0]          output_pattern_i,
-  input  [DATA_BIT-1:0] freq_pattern_i,
-  input  [7:0]          slow_period_i,
-  input  [7:0]          fast_period_i,
+  input  [7:0]          period_i,
   input  [7:0]          repeat_i,
   input  [7:0]          addr_i,
   input                 update_data_i,
+  output [11:0]         bit_count_o,
   output                serial_out_o,  // idle state is low
   output                done_tick_o
 );
@@ -127,10 +126,7 @@ module serial_out #(
         state_next = S_ONE_SHOT;
         amount_next = amount_i << 3; // transfer to bits
         data_bit_next = 0;
-        if (freq_pattern_i[0])
-          count_next = fast_period_i - 1'b1;
-        else
-          count_next = slow_period_i - 1'b1;
+        count_next = period_i;
       end
 
       // change per bit period depending on freq_pattern
@@ -141,15 +137,11 @@ module serial_out #(
           state_next = S_IDLE;
         else if (count_reg == 0)
           begin
+            count_next = period_i;
             if (data_bit_reg == amount_reg - 1'b1)
               state_next = S_DONE;
             else
               data_bit_next = data_bit_reg + 1'b1;
-
-            if (freq_pattern_i[data_bit_next]) // to get the next-bit period, use "data_bit_next"
-              count_next = fast_period_i - 1'b1;
-            else
-              count_next = slow_period_i - 1'b1;
           end
         else
           count_next = count_reg - 1'b1;
@@ -185,6 +177,7 @@ module serial_out #(
   /* Output */
   assign serial_out_o = output_reg;
   assign done_tick_o = done_tick_reg;
+  assign bit_count_o = data_bit_next;
 
   pattern_ram ram_pattern (
     .address(ram_addr_i),

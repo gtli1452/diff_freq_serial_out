@@ -24,6 +24,7 @@ vlog -work diff_freq_serial_out_lib +incdir+$rtl_dir $rtl_dir/serial_out.v
 vlog -work diff_freq_serial_out_lib +incdir+$rtl_dir $rtl_dir/diff_freq_serial_out.v
 vlog -work diff_freq_serial_out_lib +incdir+$rtl_dir $rtl_dir/decoder.v
 vlog -work diff_freq_serial_out_lib +incdir+$rtl_dir $rtl_dir/pattern_ram.v
+vlog -work diff_freq_serial_out_lib +incdir+$rtl_dir $rtl_dir/period_count.v
 
 # ------------------------------------------------------------------- #
 # Compiling core
@@ -46,6 +47,7 @@ vsim -lib diff_freq_serial_out_lib diff_freq_serial_out_tb
 # add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/*
 add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/clk
 add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out0_o
+add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out1_o
 add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/decode_sel_out
 add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/decode_amount
 add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/decode_output
@@ -57,9 +59,9 @@ add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/channel[0]/en
 add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/channel[0]/entity/bit_index
 add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/channel[0]/entity/byte_index
 add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/channel[0]/entity/data_bit_reg
-add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/channel[0]/entity/data_bit_q2
 add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/channel[0]/entity/state_reg
+add wave -HEXADECIMAL sim:/diff_freq_serial_out_tb/serial_out_unit/period_count/*
 
-run 0.5ms
-wave zoom range 0ms 0.5ms
+run 1.02ms
+wave zoom range 1.01ms 1.02ms
 #q
