@@ -66,7 +66,6 @@ module diff_freq_serial_out_tb ();
 
   diff_freq_serial_out #(
     .DATA_BIT       (`DATA_BIT),
-    .PACK_NUM       (`PACK_NUM),
     .OUTPUT_NUM     (`OUTPUT_NUM),
     .SLOW_PERIOD    (`DEFAULT_SLOW_PERIOD),
     .FAST_PERIOD    (`DEFAULT_FAST_PERIOD)
@@ -99,31 +98,32 @@ module diff_freq_serial_out_tb ();
 
   reg [7:0] slow_period = 8'h14;
   reg [7:0] fast_period = 8'h5;
-  reg [31:0] freq_pattern = 32'h5555_5555;
+  reg [`DATA_BIT-1:0] freq_pattern = `DATA_BIT'h5555_5555;
+  reg [`DATA_BIT-1:0] data_pattern = `DATA_BIT'h5501_0101_0101_0155;
 
   initial begin
     @(posedge rst_n);       // wait for finish reset
     // update frequency
-    UPDATE_FREQ(freq_pattern);
+    UPDATE_FREQ(2, freq_pattern);
     UPDATE_PERIOD(slow_period, fast_period);
     UPDATE_REPEAT(15, 3);
+    UPDATE_DATA(0,  7, data_pattern, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(1,  1, data_pattern, IDLE_LOW, REPEAT_MODE, ENABLE);
+    UPDATE_DATA(2,  2, data_pattern, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(3,  3, data_pattern, IDLE_LOW, REPEAT_MODE, ENABLE);
+    UPDATE_DATA(4,  0, data_pattern, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(5,  1, data_pattern, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(6,  2, data_pattern, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(7,  3, data_pattern, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(8,  0, data_pattern, IDLE_LOW, REPEAT_MODE, ENABLE);
+    UPDATE_DATA(9,  1, data_pattern, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(10, 2, data_pattern, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(11, 3, data_pattern, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(12, 2, data_pattern, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(13, 2, data_pattern, IDLE_HIGH, ONE_SHOT_MODE, ENABLE);
+    UPDATE_DATA(14, 3, data_pattern, IDLE_HIGH, REPEAT_MODE, ENABLE);
+    UPDATE_DATA(15, 3, data_pattern, IDLE_HIGH, REPEAT_MODE, ENABLE);
     UPDATE_GLOBAL(1);
-    UPDATE_DATA(0,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(1,  IDLE_LOW, REPEAT_MODE, ENABLE);
-    UPDATE_DATA(2,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(3,  IDLE_LOW, REPEAT_MODE, ENABLE);
-    UPDATE_DATA(4,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(5,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(6,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(7,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(8,  IDLE_LOW, REPEAT_MODE, ENABLE);
-    UPDATE_DATA(9,  IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(10, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(11, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(12, IDLE_LOW, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(13, IDLE_HIGH, ONE_SHOT_MODE, ENABLE);
-    UPDATE_DATA(14, IDLE_HIGH, REPEAT_MODE, ENABLE);
-    UPDATE_DATA(15, IDLE_HIGH, REPEAT_MODE, ENABLE);
     
     //$finish;
   end
@@ -152,18 +152,23 @@ module diff_freq_serial_out_tb ();
 
   task UPDATE_DATA;
     input [7:0] channel;
+    input [7:0] amount;
+    input [`DATA_BIT-1:0] data_pattern;
     input reg idle;
     input reg [1:0] mode;
     input reg en;
+    integer i;
     begin
       // command
       UART_WRITE_BYTE(`CMD_DATA);
       UART_WRITE_BYTE(channel);
+      UART_WRITE_BYTE(amount);
       // data pattern
-      UART_WRITE_BYTE(8'h55);
-      UART_WRITE_BYTE(8'h55);
-      UART_WRITE_BYTE(8'h55);
-      UART_WRITE_BYTE(8'h55);
+      for (i = 0; i < amount + 1'b1; i = i + 1'b1)
+        begin
+          UART_WRITE_BYTE(data_pattern[7:0]); // transmit LSB first
+          data_pattern = data_pattern[`DATA_BIT-1:8];  // right-shift 8-bit
+        end
       // control byte
       UART_WRITE_BYTE(`CMD_CTRL);
       UART_WRITE_BYTE(channel);
@@ -172,16 +177,19 @@ module diff_freq_serial_out_tb ();
   endtask
 
   task UPDATE_FREQ;
-    input [31:0] freq_pattern;
+    input [7:0] amount;
+    input [`DATA_BIT-1:0] freq_pattern;
     integer i;
     begin
       // command
       UART_WRITE_BYTE(`CMD_FREQ);
+      // amount
+      UART_WRITE_BYTE(amount);
       // freq pattern
-      for (i = 0; i < 4; i = i + 1'b1)
+      for (i = 0; i < amount + 1'b1; i = i + 1'b1)
         begin
           UART_WRITE_BYTE(freq_pattern[7:0]); // transmit LSB first
-          freq_pattern = freq_pattern[31:8];  // right-shift 8-bit
+          freq_pattern = freq_pattern[`DATA_BIT-1:8];  // right-shift 8-bit
         end
     end
   endtask
